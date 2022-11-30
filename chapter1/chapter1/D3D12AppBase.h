@@ -32,9 +32,7 @@ public:
 	{
 	}
 
-	virtual void MakeCommand(ComPtr<ID3D12CommandList>& command)
-	{
-	}
+	virtual void MakeCommand(ComPtr<ID3D12CommandList>& command){};
 
 	const UINT GpuWaitTimeout = (10 * 1000); // 10s
 	const UINT FrameBufferCount = 2;
