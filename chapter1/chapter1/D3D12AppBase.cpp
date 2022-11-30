@@ -171,7 +171,7 @@ void D3D12AppBase::Render()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(
 		m_heapRtv->GetCPUDescriptorHandleForHeapStart(),
 		m_frameIndex, m_rtvDescriptorSize);
-	const float clearColor[] = {0.1f, 0.25f, 0.5f, 0.0f}; // クリア色
+	const float clearColor[] = { 0.1f, 0.25f, 0.5f, 0.0f }; // クリア色
 	m_commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
 
 	// clear depth buffer
@@ -196,7 +196,7 @@ void D3D12AppBase::Render()
 	// # render command end
 	m_commandList->Close();
 
-	ID3D12CommandList* lists[] = {m_commandList.Get()};
+	ID3D12CommandList* lists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(1, lists);
 	m_swapchain->Present(1, 0);
 	WaitPreviousFrame();
@@ -329,7 +329,7 @@ void D3D12AppBase::CreateFrameFences()
 void D3D12AppBase::WaitPreviousFrame()
 {
 	auto& fence = m_frameFences[m_frameIndex];
-	const auto currentValue = ++ m_frameFenceValues[m_frameIndex];
+	const auto currentValue = ++m_frameFenceValues[m_frameIndex];
 	m_commandQueue->Signal(fence.Get(), currentValue);
 
 	auto nextIndex = (m_frameIndex + 1) % FrameBufferCount;
@@ -344,7 +344,57 @@ void D3D12AppBase::WaitPreviousFrame()
 }
 
 HRESULT D3D12AppBase::CompileShaderFromFile(const std::wstring& fileName, const std::wstring& profile,
-                                            ComPtr<ID3DBlob>& shaderBlob, ComPtr<ID3DBlob>& errorBlob)
+	ComPtr<ID3DBlob>& shaderBlob, ComPtr<ID3DBlob>& errorBlob)
 {
-	return S_OK;
+	using namespace std::experimental::filesystem;
+	path filePath(fileName);
+	std::ifstream infile(filePath);
+	std::vector<char> srcData;
+	if (!infile)
+		throw std::runtime_error("shader file not found");
+	srcData.resize(infile.seekg(0, infile.end).tellg());
+	infile.seekg(0, infile.beg).read(srcData.data(), srcData.size());
+
+
+	// dxc
+	ComPtr<IDxcLibrary> library;
+	ComPtr<IDxcCompiler> compiler;
+	ComPtr<IDxcBlobEncoding> source;
+	ComPtr<IDxcOperationResult> dxcResult;
+
+	DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
+	library->CreateBlobWithEncodingFromPinned(srcData.data(), UINT32(srcData.size()), CP_ACP, &source);
+	library->CreateBlobWithEncodingFromPinned(srcData.data(), UINT(srcData.size()), CP_ACP, &source);
+	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+
+	LPCWSTR compilerFlags[] = {
+  #if _DEBUG
+	  L"/Zi", L"/O0",
+  #else
+	  L"/O2" // リリースビルドでは最適化
+  #endif
+	};
+	compiler->Compile(source.Get(), filePath.wstring().c_str(),
+		L"main", profile.c_str(),
+		compilerFlags, _countof(compilerFlags),
+		nullptr, 0, // Defines
+		nullptr,
+		&dxcResult);
+
+	HRESULT hr;
+	dxcResult->GetStatus(&hr);
+	if (SUCCEEDED(hr))
+	{
+		dxcResult->GetResult(
+			reinterpret_cast<IDxcBlob**>(shaderBlob.GetAddressOf())
+		);
+	}
+	else
+	{
+		dxcResult->GetErrorBuffer(
+			reinterpret_cast<IDxcBlobEncoding**>(errorBlob.GetAddressOf())
+		);
+	}
+	return hr;
+
 }
