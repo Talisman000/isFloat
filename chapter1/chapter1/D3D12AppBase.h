@@ -28,11 +28,13 @@ public:
 	{
 	}
 
-	virtual void CleanUp()
+	virtual void Cleanup()
 	{
 	}
 
-	virtual void MakeCommand(ComPtr<ID3D12CommandList>& command){};
+	virtual void MakeCommand(ComPtr<ID3D12GraphicsCommandList>& command)
+	{
+	}
 
 	const UINT GpuWaitTimeout = (10 * 1000); // 10s
 	const UINT FrameBufferCount = 2;

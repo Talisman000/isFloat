@@ -1,5 +1,4 @@
 #include "D3D12AppBase.h"
-#include "D3D12AppBase.h"
 #include <exception>
 #include <fstream>
 
@@ -185,7 +184,7 @@ void D3D12AppBase::Render()
 	// set render destination
 	m_commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
-	// MakeCommand(m_commandList);
+	MakeCommand(m_commandList);
 
 	// barrier rt -> swapchain
 	auto barrierToPresent = CD3DX12_RESOURCE_BARRIER::Transition(
