@@ -4,6 +4,8 @@
 
 void CubeApp::Prepare()
 {
+	// モデルの定義
+	// UVの情報が追加されている
 	const float k = 1.0f;
 	constexpr DirectX::XMFLOAT4 red(1.0f, 0.0f, 0.0f, 1.0f);
 	constexpr DirectX::XMFLOAT4 green(0.0f, 1.0f, 0.0f, 1.0f);
@@ -70,18 +72,19 @@ void CubeApp::Prepare()
 	// compile shader
 	HRESULT hr;
 	ComPtr<ID3DBlob> errBlob;
-	hr = CompileShaderFromFile(L"sampleTexVS.hlsl", L"vs_6_0", m_vs, errBlob);
+	hr = CompileShaderFromFile(L"simpleTexVS.hlsl", L"vs_6_0", m_vs, errBlob);
 	if (FAILED(hr))
 	{
 		OutputDebugStringA((const char*)errBlob->GetBufferPointer());
 	}
-	hr = CompileShaderFromFile(L"sampleTexPS.hlsl", L"ps_6_0", m_ps, errBlob);
+	hr = CompileShaderFromFile(L"simpleTexPS.hlsl", L"ps_6_0", m_ps, errBlob);
 	if (FAILED(hr))
 	{
 		OutputDebugStringA((const char*)errBlob->GetBufferPointer());
 	}
 
 
+	// 今回から外部リソースを参照するため、ルートシグネチャの構築が必要（定数バッファビュー、シェーダーリソースビュー、サンプラー）
 	CD3DX12_DESCRIPTOR_RANGE cbv, srv, sampler;
 	cbv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 	srv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
@@ -139,11 +142,60 @@ void CubeApp::Prepare()
 	}
 
 
+	// インプットレイアウト
+	// TEXCOORD追加（UV座標）
+	D3D12_INPUT_ELEMENT_DESC inputElementDesc[] = {
+		{
+			"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Pos),
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA
+		},
+		{
+			"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex, Color),
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA
+		},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex, UV), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA}
+	};
+
+	// パイプラインステートオブジェクトの生成.
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+	// シェーダーのセット
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vs.Get());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_ps.Get());
+	// ブレンドステート設定
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	// ラスタライザーステート
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	// 出力先は1ターゲット
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	// デプスバッファのフォーマットを設定
+	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+	psoDesc.InputLayout = {inputElementDesc, _countof(inputElementDesc)};
+
+	// ルートシグネチャのセット
+	psoDesc.pRootSignature = m_rootSignature.Get();
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	// マルチサンプル設定
+	psoDesc.SampleDesc = {1, 0};
+	psoDesc.SampleMask = UINT_MAX; // これを忘れると絵が出ない＆警告も出ないので注意.
+
+	hr = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipeline));
+	if (FAILED(hr))
+	{
+		throw std::runtime_error("CreateGraphicsPipelineState failed");
+	}
+
+	PrepareDescriptorHeapForCubeApp();
+
+
 	// create constant buffer
 	m_constantBuffers.resize(FrameBufferCount);
 	m_cbViews.resize(FrameBufferCount);
 	for (UINT i = 0; i < FrameBufferCount; ++i)
 	{
+		// 定数バッファは255バイトのアラインメントが必要
 		UINT buffersize = sizeof(ShaderParameters) + 255 & ~255;
 		m_constantBuffers[i] = CreateBuffer(buffersize, nullptr);
 
@@ -166,6 +218,7 @@ void CubeApp::Prepare()
 	// create texture
 	CreateTexture(L"texture.tga");
 
+	// create sampler
 	D3D12_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D12_ENCODE_BASIC_FILTER(
 		D3D12_FILTER_TYPE_LINEAR, // min
@@ -179,16 +232,91 @@ void CubeApp::Prepare()
 	samplerDesc.MinLOD = -FLT_MAX;
 	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
+	auto descriptorSampler = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		m_heapSampler->GetCPUDescriptorHandleForHeapStart(),
+		SamplerDescriptorBase,
+		m_samplerDescriptorSize
+	);
+
+	m_device->CreateSampler(&samplerDesc, descriptorSampler);
+	m_sampler = CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		m_heapSrvCbv->GetGPUDescriptorHandleForHeapStart(),
+		SamplerDescriptorBase,
+		m_samplerDescriptorSize
+	);
+
+	// テクスチャからシェーダーリソースビューの準備.
+	auto srvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_heapSrvCbv->GetCPUDescriptorHandleForHeapStart(),
+	                                               TextureSrvDescriptorBase, m_srvcbvDescriptorSize);
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	m_device->CreateShaderResourceView(m_texture.Get(), &srvDesc, srvHandle);
+	m_srv = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_heapSrvCbv->GetGPUDescriptorHandleForHeapStart(), TextureSrvDescriptorBase,
+	                                      m_srvcbvDescriptorSize);
 }
 
 void CubeApp::Cleanup()
 {
-	D3D12AppBase::Cleanup();
+	auto index = m_swapchain->GetCurrentBackBufferIndex();
+	auto fence = m_frameFences[index];
+	auto value = ++m_frameFenceValues[index];
+	m_commandQueue->Signal(fence.Get(), value);
+	fence->SetEventOnCompletion(value, m_fenceWaitEvent);
+	WaitForSingleObject(m_fenceWaitEvent, GpuWaitTimeout);
 }
 
 void CubeApp::MakeCommand(ComPtr<ID3D12GraphicsCommandList>& command)
 {
-	D3D12AppBase::MakeCommand(command);
+	using namespace DirectX;
+
+	// 各行列のセット.
+	ShaderParameters shaderParams;
+	XMStoreFloat4x4(&shaderParams.mtxWorld,
+	                XMMatrixRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(45.0f)));
+	auto mtxView = XMMatrixLookAtLH(
+		XMVectorSet(0.0f, 3.0f, -5.0f, 0.0f),
+		XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
+	);
+	auto mtxProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), m_viewport.Width / m_viewport.Height, 0.1f,
+	                                        100.0f);
+	XMStoreFloat4x4(&shaderParams.mtxView, XMMatrixTranspose(mtxView));
+	XMStoreFloat4x4(&shaderParams.mtxProj, XMMatrixTranspose(mtxProj));
+
+	// update const buffer
+	auto constantBuffer = m_constantBuffers[m_frameIndex];
+
+	{
+		void* mapped;
+		CD3DX12_RANGE range(0, 0);
+		constantBuffer->Map(0, &range, &mapped);
+		memcpy(mapped, &shaderParams, sizeof(shaderParams));
+		constantBuffer->Unmap(0, nullptr);
+	}
+
+
+	// set command
+	command->SetPipelineState(m_pipeline.Get());
+	command->SetGraphicsRootSignature(m_rootSignature.Get());
+	command->RSSetViewports(1, &m_viewport);
+	command->RSSetScissorRects(1, &m_scissorRect);
+	ID3D12DescriptorHeap* heaps[] = {
+		m_heapSrvCbv.Get(), m_heapSampler.Get()
+	};
+	command->SetDescriptorHeaps(_countof(heaps), heaps);
+	command->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+	command->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	command->IASetIndexBuffer(&m_indexBufferView);
+
+	command->SetGraphicsRootDescriptorTable(0, m_cbViews[m_frameIndex]);
+	command->SetGraphicsRootDescriptorTable(1, m_srv);
+	command->SetGraphicsRootDescriptorTable(2, m_sampler);
+
+	// 描画命令の発行
+	command->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
 }
 
 ComPtr<ID3D12Resource1> CubeApp::CreateBuffer(UINT bufferSize, const void* initialData)
@@ -234,7 +362,12 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 	ComPtr<ID3D12Resource> texture;
 
 	// create texture;
-	DirectX::CreateTexture(m_device.Get(), metadata, texture.ReleaseAndGetAddressOf());
+	auto hr = DirectX::CreateTexture(m_device.Get(), metadata, &texture);
+
+	if (FAILED(hr))
+	{
+		throw std::runtime_error("Load Texture Failed");
+	}
 
 	DirectX::PrepareUpload(
 		m_device.Get(),
@@ -246,7 +379,7 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 
 	texture.As(&m_texture);
 
-	const auto totalBytes = GetRequiredIntermediateSize(m_texture.Get(), 0, subResources.size());
+	const auto totalBytes = GetRequiredIntermediateSize(texture.Get(), 0, subResources.size());
 	const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(totalBytes);
 	m_device->CreateCommittedResource(
@@ -284,7 +417,7 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 	command->Close();
 
 	// コマンドの実行
-	ID3D12CommandList* cmds[] = { command.Get() };
+	ID3D12CommandList* cmds[] = {command.Get()};
 	m_commandQueue->ExecuteCommandLists(1, cmds);
 
 	// 完了したらシグナルを立てる.
@@ -305,4 +438,26 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 
 void CubeApp::PrepareDescriptorHeapForCubeApp()
 {
+	// CBV/SRV のディスクリプタヒープ
+	//  0:シェーダーリソースビュー
+	//  1,2 : 定数バッファビュー (FrameBufferCount数分使用)
+	UINT count = FrameBufferCount + 1;
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc{
+		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		count,
+		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+		0
+	};
+	m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_heapSrvCbv));
+	m_srvcbvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	// ダイナミックサンプラーのディスクリプタヒープ
+	D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc{
+		D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+		1,
+		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+		0
+	};
+	m_device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&m_heapSampler));
+	m_samplerDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 }

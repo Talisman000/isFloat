@@ -3,6 +3,7 @@
 #include "D3D12AppBase.h"
 #include <stdexcept>
 
+#include "CubeApp.h"
 #include "TriangleApp.h"
 
 const int WINDOW_WIDTH = 640;
@@ -28,7 +29,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-	TriangleApp theApp{};
+	CubeApp theApp{};
 
 	// window class setting
 	WNDCLASSEX wc{};

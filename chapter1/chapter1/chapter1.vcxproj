@@ -130,12 +130,16 @@
     <ClCompile Include="CubeApp.cpp" />
     <ClCompile Include="D3D12AppBase.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ModelApp.cpp" />
+    <ClCompile Include="streamreader.cpp" />
     <ClCompile Include="TexturedCube.cpp" />
     <ClCompile Include="TriangleApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeApp.h" />
     <ClInclude Include="D3D12AppBase.h" />
+    <ClInclude Include="ModelApp.h" />
+    <ClInclude Include="streamreader.h" />
     <ClInclude Include="TexturedCube.h" />
     <ClInclude Include="TriangleApp.h" />
   </ItemGroup>
@@ -167,6 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="texture.tga" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
