@@ -4,6 +4,12 @@
 #include <GLTFSDK/Deserialize.h>
 
 #include <iostream>
+#pragma once
+#include <GLTFSDK/GLTF.h>
+#include <GLTFSDK/GLBResourceReader.h>
+#include <GLTFSDK/Deserialize.h>
+
+#include <iostream>
 #include <fstream>
 #if _MSC_VER > 1922 && !defined(_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
@@ -14,9 +20,7 @@
 class StreamReader : public Microsoft::glTF::IStreamReader
 {
 public:
-	StreamReader(std::experimental::filesystem::path pathBase) : m_pathBase(std::move(pathBase))
-	{
-	}
+	StreamReader(std::experimental::filesystem::path pathBase) : m_pathBase(std::move(pathBase)) { }
 
 	std::shared_ptr<std::istream> GetInputStream(const std::string& filename) const override
 	{
@@ -30,7 +34,5 @@ public:
 	}
 
 private:
-	// std::experimental::filesystem
-	// ファイル一覧とかを楽に取れる便利機能
 	std::experimental::filesystem::path m_pathBase;
 };

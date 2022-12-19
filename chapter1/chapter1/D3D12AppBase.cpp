@@ -147,59 +147,12 @@ void D3D12AppBase::Terminate()
 {
 }
 
+
 void D3D12AppBase::Render()
 {
-	m_frameIndex = m_swapchain->GetCurrentBackBufferIndex();
-
-	m_commandAllocators[m_frameIndex]->Reset();
-	m_commandList->Reset(
-		m_commandAllocators[m_frameIndex].Get(),
-		nullptr
-	);
-
-	// # render command start
-
-	// barrier : swapchain -> rt
-	auto barrierToRT = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_renderTargets[m_frameIndex].Get(),
-		D3D12_RESOURCE_STATE_PRESENT,
-		D3D12_RESOURCE_STATE_RENDER_TARGET);
-	m_commandList->ResourceBarrier(1, &barrierToRT);
-
-
-	// clear color buffer
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(
-		m_heapRtv->GetCPUDescriptorHandleForHeapStart(),
-		m_frameIndex, m_rtvDescriptorSize);
-	const float clearColor[] = { 0.1f, 0.25f, 0.5f, 0.0f }; // クリア色
-	m_commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
-
-	// clear depth buffer
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsv(
-		m_heapDsv->GetCPUDescriptorHandleForHeapStart()
-	);
-	m_commandList->ClearDepthStencilView(
-		dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-	// set render destination
-	m_commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
-
+	BeginRender();
 	MakeCommand(m_commandList);
-
-	// barrier rt -> swapchain
-	auto barrierToPresent = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_renderTargets[m_frameIndex].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,
-		D3D12_RESOURCE_STATE_PRESENT);
-	m_commandList->ResourceBarrier(1, &barrierToPresent);
-
-	// # render command end
-	m_commandList->Close();
-
-	ID3D12CommandList* lists[] = { m_commandList.Get() };
-	m_commandQueue->ExecuteCommandLists(1, lists);
-	m_swapchain->Present(1, 0);
-	WaitPreviousFrame();
+	EndRender();
 }
 
 
@@ -344,8 +297,9 @@ void D3D12AppBase::WaitPreviousFrame()
 }
 
 HRESULT D3D12AppBase::CompileShaderFromFile(const std::wstring& fileName, const std::wstring& profile,
-	ComPtr<ID3DBlob>& shaderBlob, ComPtr<ID3DBlob>& errorBlob)
+	ComPtr<ID3DBlob>& outShaderBlob, ComPtr<ID3DBlob>& outErrorBlob)
 {
+	// ファイル読み込み
 	using namespace std::experimental::filesystem;
 	path filePath(fileName);
 	std::ifstream infile(filePath);
@@ -356,7 +310,7 @@ HRESULT D3D12AppBase::CompileShaderFromFile(const std::wstring& fileName, const 
 	infile.seekg(0, infile.beg).read(srcData.data(), srcData.size());
 
 
-	// dxc
+	// dxcによるコンパイル
 	ComPtr<IDxcLibrary> library;
 	ComPtr<IDxcCompiler> compiler;
 	ComPtr<IDxcBlobEncoding> source;
@@ -381,20 +335,78 @@ HRESULT D3D12AppBase::CompileShaderFromFile(const std::wstring& fileName, const 
 		nullptr,
 		&dxcResult);
 
+	// GetResult(成功時)/GetErrorBuffer(失敗時)でシェーダーのコンパイル結果を入れる
 	HRESULT hr;
 	dxcResult->GetStatus(&hr);
 	if (SUCCEEDED(hr))
 	{
 		dxcResult->GetResult(
-			reinterpret_cast<IDxcBlob**>(shaderBlob.GetAddressOf())
+			reinterpret_cast<IDxcBlob**>(outShaderBlob.GetAddressOf())
 		);
 	}
 	else
 	{
 		dxcResult->GetErrorBuffer(
-			reinterpret_cast<IDxcBlobEncoding**>(errorBlob.GetAddressOf())
+			reinterpret_cast<IDxcBlobEncoding**>(outErrorBlob.GetAddressOf())
 		);
 	}
 	return hr;
 
+}
+
+void D3D12AppBase::BeginRender()
+{
+	m_frameIndex = m_swapchain->GetCurrentBackBufferIndex();
+
+	m_commandAllocators[m_frameIndex]->Reset();
+	m_commandList->Reset(
+		m_commandAllocators[m_frameIndex].Get(),
+		nullptr
+	);
+
+	// # render command start
+
+	// barrier : swapchain -> rt
+	auto barrierToRT = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_renderTargets[m_frameIndex].Get(),
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_commandList->ResourceBarrier(1, &barrierToRT);
+
+
+	// clear color buffer
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(
+		m_heapRtv->GetCPUDescriptorHandleForHeapStart(),
+		m_frameIndex, m_rtvDescriptorSize);
+	const float clearColor[] = { 0.1f, 0.25f, 0.5f, 0.0f }; // クリア色
+	m_commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+
+	// clear depth buffer
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsv(
+		m_heapDsv->GetCPUDescriptorHandleForHeapStart()
+	);
+	m_commandList->ClearDepthStencilView(
+		dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	// set render destination
+	m_commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+}
+
+void D3D12AppBase::EndRender()
+{
+
+	// barrier rt -> swapchain
+	auto barrierToPresent = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_renderTargets[m_frameIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT);
+	m_commandList->ResourceBarrier(1, &barrierToPresent);
+
+	// # render command end
+	m_commandList->Close();
+
+	ID3D12CommandList* lists[] = { m_commandList.Get() };
+	m_commandQueue->ExecuteCommandLists(1, lists);
+	m_swapchain->Present(1, 0);
+	WaitPreviousFrame();
 }

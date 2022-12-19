@@ -4,6 +4,11 @@
 #include <DirectXMath.h>
 #include <GLTFSDK/GLTF.h>
 
+namespace DirectX
+{
+	class ScratchImage;
+}
+
 namespace Microsoft
 {
 	namespace glTF
@@ -86,18 +91,22 @@ private:
 		std::vector<Material> materials;
 	};
 
+
+
 	void WaitGPU();
 
 	ComPtr<ID3D12Resource1> CreateBuffer(UINT bufferSize, const void* initialData);
+	TextureObject CreateTexture(const DirectX::ScratchImage& image);
 	TextureObject CreateTextureFromMemory(const std::vector<char>& imageData);
 	void PrepareDescriptorHeapForModelApp(UINT materialCount);
 	void MakeModelGeometry(const Microsoft::glTF::Document& doc,
-	                       std::shared_ptr<Microsoft::glTF::GLTFResourceReader> reader);
+		std::shared_ptr<Microsoft::glTF::GLTFResourceReader> reader);
 	void MakeModelMaterial(const Microsoft::glTF::Document& doc,
-	                       std::shared_ptr<Microsoft::glTF::GLTFResourceReader> reader);
+		std::shared_ptr<Microsoft::glTF::GLTFResourceReader> reader);
 	ComPtr<ID3D12PipelineState> CreateOpaquePSO();
 	ComPtr<ID3D12PipelineState> CreateAlphaPSO();
 
+	HRESULT PrepareModel();
 	HRESULT PrepareShader();
 	HRESULT CreateRootSignature();
 	HRESULT CreateCBV();

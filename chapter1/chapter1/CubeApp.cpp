@@ -399,6 +399,8 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 	ComPtr<ID3D12Fence1> fence;
 	m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
 
+	// リソースを更新
+	// 読み込んだテクスチャをアップロードする。
 	UpdateSubresources(
 		command.Get(),
 		texture.Get(),
@@ -408,6 +410,8 @@ HRESULT CubeApp::CreateTexture(const wchar_t* fileName)
 		uint32_t(subResources.size()),
 		subResources.data()
 	);
+	// リソースバリアの変更をセット
+	// COPY_DEST -> SHADER_RESOURCE
 	auto barrierTex = CD3DX12_RESOURCE_BARRIER::Transition(
 		texture.Get(),
 		D3D12_RESOURCE_STATE_COPY_DEST,

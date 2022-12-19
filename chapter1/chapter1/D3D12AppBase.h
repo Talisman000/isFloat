@@ -7,9 +7,7 @@
 #include <vector>
 
 #include "d3dx12.h"
-#include <wrl.h>
-
-using namespace Microsoft::WRL;
+#include"ComPtr.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -46,8 +44,8 @@ protected:
 	void CreateFrameFences();
 	void WaitPreviousFrame();
 	HRESULT CompileShaderFromFile(
-		const std::wstring& fileName, const std::wstring& profile, ComPtr<ID3DBlob>& shaderBlob,
-		ComPtr<ID3DBlob>& errorBlob);
+		const std::wstring& fileName, const std::wstring& profile, ComPtr<ID3DBlob>& outShaderBlob,
+		ComPtr<ID3DBlob>& outErrorBlob);
 
 	ComPtr<ID3D12Device> m_device;
 	ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -75,4 +73,7 @@ protected:
 
 
 	UINT m_frameIndex;
+private:
+	void BeginRender();
+	void EndRender();
 };
