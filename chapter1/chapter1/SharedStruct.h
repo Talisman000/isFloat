@@ -26,10 +26,11 @@ struct alignas(256) Transform {
 
 
 // UnityÉxÅ[ÉXÇÃTransform
-struct UniTransform
+struct RenderProperty
 {
 	DirectX::XMFLOAT3 Position = { 0,0,0 };
 	DirectX::XMFLOAT3 Rotation = { 0,0,0 };
 	DirectX::XMFLOAT3 Scale = { 1,1,1 };
+	DirectX::XMFLOAT4 Color = { 1,1,1 ,1 };
 };
 

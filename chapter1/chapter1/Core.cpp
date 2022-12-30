@@ -31,6 +31,16 @@ void Core::Initialize(HWND hwnd)
 	CreateDepthBuffer();
 }
 
+void Core::Cleanup()
+{
+	auto index = m_swapchain->GetCurrentBackBufferIndex();
+	auto fence = m_frameFences[index];
+	auto value = ++m_frameFenceValues[index];
+	m_commandQueue->Signal(fence.Get(), value);
+	fence->SetEventOnCompletion(value, m_fenceWaitEvent);
+	WaitForSingleObject(m_fenceWaitEvent, GpuWaitTimeout);
+}
+
 ID3D12Device* Core::GetDevice()
 {
 	return m_device.Get();
@@ -60,7 +70,7 @@ HRESULT Core::EnableDebugLayer()
 			debug3->SetEnableGPUBasedValidation(true);
 		}
 #endif
-	}
+}
 #endif
 	return hr;
 }
@@ -206,7 +216,7 @@ void Core::PrepareRenderTargetView()
 	auto hr = m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_heapRtv.ReleaseAndGetAddressOf()));
 	if (FAILED(hr))
 	{
-		return ;
+		return;
 	}
 
 	// ディスクリプタのサイズを取得。

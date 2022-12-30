@@ -41,8 +41,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	//TriangleRenderer triangleRenderer(&core);
 	//TriangleRenderer triangleRenderer2(&core);
 
-	//UniTransform uniTransform;
-	//UniTransform uniTransform2;
+	//RenderProperty uniTransform;
+	//RenderProperty uniTransform2;
 
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	std::random_device rnd;
@@ -130,6 +130,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			core.EndRender();
 			//theApp.Render();
 		}
+		core.Cleanup();
+		//CloseHandle();
 		//theApp.Terminate();
 		return static_cast<int>(msg.wParam);
 	}

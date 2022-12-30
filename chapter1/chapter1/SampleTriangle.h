@@ -6,7 +6,7 @@ class SampleTriangle
 private:
 	TriangleRenderer* triangleRenderer;
 public:
-	UniTransform transform;
+	RenderProperty transform;
 	SampleTriangle(Core* core);
 	void Draw();
 };

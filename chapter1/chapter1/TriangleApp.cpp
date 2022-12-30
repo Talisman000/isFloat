@@ -112,6 +112,12 @@ void TriangleApp::Prepare()
 
 void TriangleApp::Cleanup()
 {
+	auto index = m_swapchain->GetCurrentBackBufferIndex();
+	auto fence = m_frameFences[index];
+	auto value = ++m_frameFenceValues[index];
+	m_commandQueue->Signal(fence.Get(), value);
+	fence->SetEventOnCompletion(value, m_fenceWaitEvent);
+	WaitForSingleObject(m_fenceWaitEvent, GpuWaitTimeout);
 }
 
 void TriangleApp::MakeCommand(ComPtr<ID3D12GraphicsCommandList>& command)
@@ -130,31 +136,31 @@ void TriangleApp::MakeCommand(ComPtr<ID3D12GraphicsCommandList>& command)
 
 ComPtr<ID3D12Resource1> TriangleApp::CreateBuffer(UINT bufferSize, const void* initialData)
 {
-	  HRESULT hr;
-  ComPtr<ID3D12Resource1> buffer;
-  const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-  const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-  hr = m_device->CreateCommittedResource(
-    &heapProps,
-    D3D12_HEAP_FLAG_NONE,
-    &resDesc,
-    D3D12_RESOURCE_STATE_GENERIC_READ,
-    nullptr,
-    IID_PPV_ARGS(&buffer)
-  );
+	HRESULT hr;
+	ComPtr<ID3D12Resource1> buffer;
+	const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+	hr = m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&buffer)
+	);
 
-  // 初期データの指定があるときにはコピーする
-  if (SUCCEEDED(hr) && initialData != nullptr)
-  {
-    void* mapped;
-    CD3DX12_RANGE range(0, 0);
-    hr = buffer->Map(0, &range, &mapped);
-    if (SUCCEEDED(hr))
-    {
-      memcpy(mapped, initialData, bufferSize);
-      buffer->Unmap(0, nullptr);
-    }
-  }
+	// 初期データの指定があるときにはコピーする
+	if (SUCCEEDED(hr) && initialData != nullptr)
+	{
+		void* mapped;
+		CD3DX12_RANGE range(0, 0);
+		hr = buffer->Map(0, &range, &mapped);
+		if (SUCCEEDED(hr))
+		{
+			memcpy(mapped, initialData, bufferSize);
+			buffer->Unmap(0, nullptr);
+		}
+	}
 
-  return buffer;
+	return buffer;
 }

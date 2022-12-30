@@ -61,8 +61,8 @@ bool TriangleRenderer::Init()
 	m_pipelineState = new PipelineState();
 	m_pipelineState->SetInputLayout(Vertex::InputLayout);
 	m_pipelineState->SetRootSignature(m_rootSignature->Get());
-	m_pipelineState->SetVS(L"../x64/Debug/SimpleVS2.cso");
-	m_pipelineState->SetPS(L"../x64/Debug/SimplePS2.cso");
+	m_pipelineState->SetVS(L"./SimpleVS2.cso");
+	m_pipelineState->SetPS(L"./SimplePS2.cso");
 	m_pipelineState->Create(device);
 	if (!m_pipelineState->IsValid())
 	{
@@ -73,7 +73,7 @@ bool TriangleRenderer::Init()
 	return true;
 }
 
-void TriangleRenderer::Update(UniTransform tran)
+void TriangleRenderer::Update(RenderProperty tran)
 {
 	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得
 	auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<Transform>(); // 現在のフレーム番号に対応する定数バッファを取得

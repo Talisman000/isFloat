@@ -18,7 +18,7 @@ private:
 public:
 	TriangleRenderer(Core* core);
 	bool Init();
-	void Update(UniTransform tran);
+	void Update(RenderProperty tran);
 	void Draw();
 };
 
