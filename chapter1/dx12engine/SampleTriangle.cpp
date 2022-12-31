@@ -2,12 +2,13 @@
 
 SampleTriangle::SampleTriangle(Core* core)
 {
-	triangleRenderer = new TriangleRenderer(core);
-	triangleRenderer->Init();
+	TriangleMesh mesh = TriangleMesh();
+	meshRenderer = new MeshRenderer(core, mesh);
+	meshRenderer->Init();
 }
 
 void SampleTriangle::Draw()
 {
-	triangleRenderer->Update(transform);
-	triangleRenderer->Draw();
+	meshRenderer->Update(transform);
+	meshRenderer->Draw();
 }

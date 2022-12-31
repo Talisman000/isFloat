@@ -1,41 +1,53 @@
-#include "TriangleRenderer.h"
+#include "SquareRenderer.h"
+
 #include "d3dx12.h"
 #include <DirectXMath.h>
 #include <stdexcept>
 
 #include "SharedStruct.h"
+
 using namespace DirectX;
 
-TriangleRenderer::TriangleRenderer(Core* core)
+SquareRenderer::SquareRenderer(Core* core)
 {
 	m_core = core;
 }
 
-bool TriangleRenderer::Init()
+bool SquareRenderer::Init()
 {
 	auto device = m_core->GetDevice();
-	Vertex vertices[3] = {};
-	vertices[0].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
-	vertices[0].Color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+		// 頂点を4つにして四角形を定義する
+	Vertex vertices[4] = {};
+	vertices[0].Position = XMFLOAT3(-1.0f, 1.0f, 0.0f);
+	vertices[0].Color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-	vertices[1].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
+	vertices[1].Position = XMFLOAT3(1.0f, 1.0f, 0.0f);
 	vertices[1].Color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 
-	vertices[2].Position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-	vertices[2].Color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	vertices[2].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
+	vertices[2].Color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-	std::vector<Vertex> vertices_vec = {};
-	vertices_vec.emplace_back(vertices[0]);
-	vertices_vec.emplace_back(vertices[1]);
-	vertices_vec.emplace_back(vertices[2]);
+	vertices[3].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
+	vertices[3].Color = XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
 
-	auto vertexSize = sizeof(Vertex) * vertices_vec.size();
+	auto vertexSize = sizeof(Vertex) * std::size(vertices);
 	auto vertexStride = sizeof(Vertex);
-	auto vertexdata = vertices_vec.data();
-	m_vertexBuffer = new VertexBuffer(device, vertexSize, vertexStride, vertexdata);
+	m_vertexBuffer = new VertexBuffer(device, vertexSize, vertexStride, vertices);
 	if (!m_vertexBuffer->IsValid())
 	{
-		throw std::runtime_error("d");
+		printf("頂点バッファの生成に失敗\n");
+		return false;
+	}
+
+	uint32_t indices[] = { 0, 1, 2, 0, 2, 3 }; // これに書かれている順序で描画する
+
+	// インデックスバッファの生成
+	auto size = sizeof(uint32_t) * std::size(indices);
+	m_indexBuffer = new IndexBuffer(device, size, indices);
+	if (!m_indexBuffer->IsValid())
+	{
+		printf("インデックスバッファの生成に失敗\n");
+		return false;
 	}
 
 	auto eyePos = XMVectorSet(0.0f, 0.0f, 10.0f, 0.0f); // 視点の位置
@@ -79,7 +91,7 @@ bool TriangleRenderer::Init()
 	return true;
 }
 
-void TriangleRenderer::Update(RenderProperty tran)
+void SquareRenderer::Update(RenderProperty tran)
 {
 	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得
 	auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<Transform>(); // 現在のフレーム番号に対応する定数バッファを取得
@@ -91,18 +103,20 @@ void TriangleRenderer::Update(RenderProperty tran)
 		XMMatrixTranslation(tran.Position.x, tran.Position.y, tran.Position.z);
 }
 
-void TriangleRenderer::Draw()
+void SquareRenderer::Draw()
 {
 	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得する
 	auto commandList = m_core->GetCommandList(); // コマンドリスト
-	auto vbView = m_vertexBuffer->View(); // 頂点バッファビュー
+	auto vbView = m_vertexBuffer->View();
+	auto ibView = m_indexBuffer->View(); // インデックスバッファビュー
 
-	commandList->SetGraphicsRootSignature(m_rootSignature->Get()); // ルートシグネチャをセット
-	commandList->SetPipelineState(m_pipelineState->Get()); // パイプラインステートをセット
-	commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer[currentIndex]->GetAddress()); // 定数バッファをセット
+	commandList->SetGraphicsRootSignature(m_rootSignature->Get());
+	commandList->SetPipelineState(m_pipelineState->Get());
+	commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer[currentIndex]->GetAddress());
 
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 三角形を描画する設定にする
-	commandList->IASetVertexBuffers(0, 1, &vbView); // 頂点バッファをスロット0番を使って1個だけ設定する
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetVertexBuffers(0, 1, &vbView);
+	commandList->IASetIndexBuffer(&ibView); // インデックスバッファをセットする
 
-	commandList->DrawInstanced(3, 1, 0, 0); // 3個の頂点を描画する
+	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // 6個のインデックスで描画する（三角形の時と関数名が違うので注意）
 }
