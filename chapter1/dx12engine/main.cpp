@@ -98,32 +98,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			triangles.emplace_back(tri);
 		}
 
-		//auto squareMesh = SquareMesh();
-		//auto mesh = MeshRenderer(&core, squareMesh);
-		auto cubeMesh = CubeMesh();
-		auto mesh = MeshRenderer(&core, cubeMesh);
+		auto squareMesh = SquareMesh({1,1,1,1}, L"Assets/men.png");
+		auto mesh = MeshRenderer(&core, squareMesh);
+		//auto cubeMesh = CubeMesh({1,1,1,1}, L"Assets/test.png");
+		//auto mesh = MeshRenderer(&core, cubeMesh);
 		RenderProperty rp;
-		const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
+		//const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
 
-		std::vector<Mesh> meshes;
-		ImportSettings importSetting = // これ自体は自作の読み込み設定構造体
-		{
-			modelFile,
-			meshes,
-			false,
-			true // アリシアのモデルは、テクスチャのUVのVだけ反転してるっぽい？ので読み込み時にUV座標を逆転させる
-		};
+		//std::vector<Mesh> meshes;
+		//ImportSettings importSetting = // これ自体は自作の読み込み設定構造体
+		//{
+		//	modelFile,
+		//	meshes,
+		//	false,
+		//	true // アリシアのモデルは、テクスチャのUVのVだけ反転してるっぽい？ので読み込み時にUV座標を逆転させる
+		//};
 
-		AssimpLoader loader;
-		if (!loader.Load(importSetting))
-		{
-			throw std::runtime_error("model load failed");
-		}
+		//AssimpLoader loader;
+		//if (!loader.Load(importSetting))
+		//{
+		//	throw std::runtime_error("model load failed");
+		//}
 
-		auto modelRenderer = MeshRenderer(&core, meshes);
-		auto modelPos = RenderProperty();
-		modelPos.Position.z = -200;
-		modelPos.Position.y = -100;
+		//auto modelRenderer = MeshRenderer(&core, meshes);
+		//auto modelPos = RenderProperty();
+		//modelPos.Position.z = -200;
+		//modelPos.Position.y = -100;
 
 
 		//theApp.Initialize(hwnd);
@@ -168,8 +168,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 			mesh.Draw();
 
-			modelRenderer.Update(modelPos);
-			modelRenderer.Draw();
+			//modelRenderer.Update(modelPos);
+			//modelRenderer.Draw();
 
 			core.EndRender();
 			//theApp.Render();

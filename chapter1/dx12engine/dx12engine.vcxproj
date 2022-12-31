@@ -23,6 +23,7 @@
     <ClCompile Include="ComPtr.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -31,6 +32,7 @@
     <ClCompile Include="RootSignature.cpp" />
     <ClCompile Include="SampleTriangle.cpp" />
     <ClCompile Include="SharedStruct.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -38,6 +40,7 @@
     <ClInclude Include="ComPtr.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
@@ -46,6 +49,7 @@
     <ClInclude Include="RootSignature.h" />
     <ClInclude Include="SampleTriangle.h" />
     <ClInclude Include="SharedStruct.h" />
+    <ClInclude Include="Texture2D.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Color.h" />
   </ItemGroup>

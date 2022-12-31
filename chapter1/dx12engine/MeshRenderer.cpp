@@ -5,8 +5,19 @@
 #include <stdexcept>
 
 #include "SharedStruct.h"
+#include <filesystem>
+
+#include "DescriptorHeap.h"
+#include "Texture2D.h"
 
 using namespace DirectX;
+
+namespace fs = std::filesystem;
+std::wstring ReplaceExtension(const std::wstring& origin, const char* ext)
+{
+	fs::path p = origin.c_str();
+	return p.replace_extension(ext).c_str();
+}
 MeshRenderer::MeshRenderer(Core* core, Mesh mesh)
 {
 	m_core = core;
@@ -50,6 +61,24 @@ bool MeshRenderer::Init()
 
 		m_indexCount = mesh.Indices.size();
 		m_indexBuffers.emplace_back(indexBuffer);
+	}
+	m_descriptorHeap = std::make_shared<DescriptorHeap>(m_core);
+
+	for (size_t i = 0; i < m_meshes.size(); i++)
+	{
+		if (m_meshes[i].DiffuseMap != L"")
+		{
+			auto texPath = ReplaceExtension(m_meshes[i].DiffuseMap, "tga"); // もともとはpsdになっていてちょっとめんどかったので、同梱されているtgaを読み込む
+			auto mainTex = Texture2D::Get(m_core, texPath);
+			auto handle = m_descriptorHeap->Register(mainTex);
+			m_materialHandles.push_back(handle);
+		}
+		else
+		{
+			auto mainTex = Texture2D::GetWhite(m_core);
+			auto handle = m_descriptorHeap->Register(mainTex);
+			m_materialHandles.push_back(handle);
+		}
 	}
 
 
@@ -123,6 +152,10 @@ void MeshRenderer::Draw()
 
 		commandList->IASetVertexBuffers(0, 1, &vbView);
 		commandList->IASetIndexBuffer(&ibView); // インデックスバッファをセットする
+
+		auto pDescriptorHeap = m_descriptorHeap->GetHeap();
+		commandList->SetDescriptorHeaps(1, &pDescriptorHeap); // 使用するディスクリプタヒープをセット
+		commandList->SetGraphicsRootDescriptorTable(1, m_materialHandles[i]->HandleGPU); // そのメッシュに対応するディスクリプタテーブルをセット
 
 		commandList->DrawIndexedInstanced(m_indexBuffers[i]->IndexCount(), 1, 0, 0, 0); // 6個のインデックスで描画する（三角形の時と関数名が違うので注意）
 	}
