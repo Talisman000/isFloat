@@ -2,8 +2,9 @@
 #include <stdexcept>
 #include "d3dx12.h"
 
-IndexBuffer::IndexBuffer(ID3D12Device* device, size_t size, const uint32_t* pInitData)
+IndexBuffer::IndexBuffer(ID3D12Device* device, size_t size, int count, const uint32_t* pInitData)
 {
+	m_count = count;
 	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); // ヒーププロパティ
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);	// リソースの設定
 
@@ -55,4 +56,9 @@ bool IndexBuffer::IsValid()
 D3D12_INDEX_BUFFER_VIEW IndexBuffer::View() const
 {
 	return m_View;
+}
+
+int IndexBuffer::IndexCount()
+{
+	return m_count;
 }

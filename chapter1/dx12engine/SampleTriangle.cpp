@@ -4,7 +4,6 @@ SampleTriangle::SampleTriangle(Core* core)
 {
 	TriangleMesh mesh = TriangleMesh();
 	meshRenderer = new MeshRenderer(core, mesh);
-	meshRenderer->Init();
 }
 
 void SampleTriangle::Draw()

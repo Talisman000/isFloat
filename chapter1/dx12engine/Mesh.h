@@ -5,23 +5,24 @@
 using namespace DirectX;
 struct Mesh
 {
-	std::vector<Vertex> m_vertices; // 頂点データの配列
-	std::vector<uint32_t> m_indices; // インデックスの配列
+	std::vector<Vertex> Vertices; // 頂点データの配列
+	std::vector<uint32_t> Indices; // インデックスの配列
+	std::wstring DiffuseMap; // テクスチャのファイルパス
 };
 
 struct TriangleMesh : Mesh {
 
 	TriangleMesh(XMFLOAT4 vertexColor = { 0,0,0,0 })
 	{
-		m_vertices = std::vector<Vertex>(3);
-		m_vertices[0].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
-		m_vertices[1].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
-		m_vertices[2].Position = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		for (auto& vertex : m_vertices) {
+		Vertices = std::vector<Vertex>(3);
+		Vertices[0].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
+		Vertices[1].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
+		Vertices[2].Position = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		for (auto& vertex : Vertices) {
 			vertex.Color = vertexColor;
 		}
 
-		m_indices = { 0, 1, 2 }; // これに書かれている順序で描画する
+		Indices = { 0, 1, 2 }; // これに書かれている順序で描画する
 	}
 };
 
@@ -29,17 +30,17 @@ struct SquareMesh : Mesh {
 
 	SquareMesh(XMFLOAT4 vertexColor = { 0,0,0,0 })
 	{
-		m_vertices = std::vector<Vertex>(4);
-		m_vertices[0].Position = XMFLOAT3(-1.0f, 1.0f, 0.0f);
-		m_vertices[1].Position = XMFLOAT3(1.0f, 1.0f, 0.0f);
-		m_vertices[2].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
-		m_vertices[3].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
-		for (auto& vertex : m_vertices) {
+		Vertices = std::vector<Vertex>(4);
+		Vertices[0].Position = XMFLOAT3(-1.0f, 1.0f, 0.0f);
+		Vertices[1].Position = XMFLOAT3(1.0f, 1.0f, 0.0f);
+		Vertices[2].Position = XMFLOAT3(1.0f, -1.0f, 0.0f);
+		Vertices[3].Position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
+		for (auto& vertex : Vertices) {
 			vertex.Color = vertexColor;
 		}
 
 
-		m_indices = { 0, 1, 2, 0, 2, 3 }; // これに書かれている順序で描画する
+		Indices = { 0, 1, 2, 0, 2, 3 }; // これに書かれている順序で描画する
 	}
 };
 
@@ -81,9 +82,9 @@ struct CubeMesh : Mesh
 			Vertex v;
 			v.Position = vertex;
 			v.Color = vertexColor;
-			m_vertices.emplace_back(v);
+			Vertices.emplace_back(v);
 		}
-		m_indices = {
+		Indices = {
 			0, 1, 2, 2, 3, 0,
 			4, 5, 6, 6, 7, 4,
 			8, 9, 10, 10, 11, 8,

@@ -12,16 +12,17 @@
 
 class MeshRenderer
 {
-	Mesh m_mesh;
+	std::vector<Mesh> m_meshes = {};
 	Core* m_core = nullptr;
-	VertexBuffer* m_vertexBuffer = nullptr;
-	IndexBuffer* m_indexBuffer = nullptr;
+	std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
+	std::vector<std::shared_ptr<IndexBuffer>> m_indexBuffers = {};
 	int m_indexCount = 0;
 	ConstantBuffer* m_constantBuffer[2];
 	RootSignature* m_rootSignature = nullptr;
 	PipelineState* m_pipelineState = nullptr;
 public:
 	MeshRenderer(Core* core, Mesh mesh);
+	MeshRenderer(Core* core, std::vector<Mesh> meshes);
 	bool Init();
 	void Update(RenderProperty tran);
 	void Draw();

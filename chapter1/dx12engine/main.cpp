@@ -7,11 +7,10 @@
 //#include "CubeApp.h"
 #include <random>
 
+#include "AssimpLoader.h"
 #include "Core.h"
 #include "MeshRenderer.h"
 #include "SampleTriangle.h"
-#include "SquareRenderer.h"
-#include "TriangleRenderer.h"
 //#include "TriangleApp.h"
 
 const int WINDOW_WIDTH = 640;
@@ -104,12 +103,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		auto cubeMesh = CubeMesh();
 		auto mesh = MeshRenderer(&core, cubeMesh);
 		RenderProperty rp;
-		mesh.Init();
+		const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
 
+		std::vector<Mesh> meshes;
+		ImportSettings importSetting = // これ自体は自作の読み込み設定構造体
+		{
+			modelFile,
+			meshes,
+			false,
+			true // アリシアのモデルは、テクスチャのUVのVだけ反転してるっぽい？ので読み込み時にUV座標を逆転させる
+		};
 
+		AssimpLoader loader;
+		if (!loader.Load(importSetting))
+		{
+			throw std::runtime_error("model load failed");
+		}
 
-		auto square = SquareRenderer(&core);
-		square.Init();
+		auto modelRenderer = MeshRenderer(&core, meshes);
+		auto modelPos = RenderProperty();
+		modelPos.Position.z = -200;
+		modelPos.Position.y = -100;
+
 
 		//theApp.Initialize(hwnd);
 		//triangleRenderer.Init();
@@ -140,15 +155,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 				}
 				tri.Draw();
 			}
-			square.Update(triangles[0].transform);
 
-			square.Draw();
+			rp.Rotation.x += 0.01f;
+			rp.Rotation.y += 0.01f;
+			rp.Position.x -= 0.01f;
+			if (rp.Position.x < -5)
+			{
+				rp.Position.x = 5;
+			}
 
-			rp.Rotation.x+= 0.01f;
-			rp.Rotation.y+= 0.01f;
 			mesh.Update(rp);
 
 			mesh.Draw();
+
+			modelRenderer.Update(modelPos);
+			modelRenderer.Draw();
 
 			core.EndRender();
 			//theApp.Render();
