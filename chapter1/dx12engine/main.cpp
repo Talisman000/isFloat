@@ -8,7 +8,9 @@
 #include <random>
 
 #include "Core.h"
+#include "MeshRenderer.h"
 #include "SampleTriangle.h"
+#include "SquareRenderer.h"
 #include "TriangleRenderer.h"
 //#include "TriangleApp.h"
 
@@ -96,6 +98,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			};
 			triangles.emplace_back(tri);
 		}
+
+		//auto squareMesh = SquareMesh();
+		//auto mesh = MeshRenderer(&core, squareMesh);
+		auto cubeMesh = CubeMesh();
+		auto mesh = MeshRenderer(&core, cubeMesh);
+		RenderProperty rp;
+		mesh.Init();
+
+
+
+		auto square = SquareRenderer(&core);
+		square.Init();
+
 		//theApp.Initialize(hwnd);
 		//triangleRenderer.Init();
 		//triangleRenderer2.Init();
@@ -125,6 +140,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 				}
 				tri.Draw();
 			}
+			square.Update(triangles[0].transform);
+
+			square.Draw();
+
+			rp.Rotation.x+= 0.01f;
+			rp.Rotation.y+= 0.01f;
+			mesh.Update(rp);
+
+			mesh.Draw();
 
 			core.EndRender();
 			//theApp.Render();

@@ -1,10 +1,10 @@
 #pragma once
-#include "TriangleRenderer.h"
+#include "MeshRenderer.h"
 
 class SampleTriangle
 {
 private:
-	TriangleRenderer* triangleRenderer;
+	MeshRenderer* meshRenderer;
 public:
 	RenderProperty transform;
 	SampleTriangle(Core* core);

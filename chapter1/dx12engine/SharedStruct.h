@@ -34,3 +34,4 @@ struct RenderProperty
 	DirectX::XMFLOAT4 Color = { 1,1,1 ,1 };
 };
 
+

@@ -12,3 +12,4 @@ const D3D12_INPUT_LAYOUT_DESC Vertex::InputLayout =
 	Vertex::InputElements,
 	Vertex::InputElementCount
 };
+
