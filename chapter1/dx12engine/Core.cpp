@@ -29,6 +29,7 @@ void Core::Initialize(HWND hwnd)
 	CreateScissorRect();
 	PrepareRenderTargetView();
 	CreateDepthBuffer();
+	CreateRootSignatures();
 }
 
 void Core::Cleanup()
@@ -49,6 +50,11 @@ ID3D12Device* Core::GetDevice()
 ID3D12GraphicsCommandList* Core::GetCommandList()
 {
 	return m_commandList.Get();
+}
+
+std::shared_ptr<RootSignature> Core::GetRootSignature(int n)
+{
+	return m_rootSignatures[n];
 }
 
 HRESULT Core::EnableDebugLayer()
@@ -204,6 +210,12 @@ void Core::CreateViewPort()
 void Core::CreateScissorRect()
 {
 	m_scissorRect = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
+}
+
+void Core::CreateRootSignatures()
+{
+	auto rootSignature = std::make_shared<RootSignature>(m_device.Get());
+	m_rootSignatures.emplace_back(rootSignature);
 }
 
 void Core::PrepareRenderTargetView()
