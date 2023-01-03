@@ -1,15 +1,7 @@
 #pragma once
 #include <memory>
-
-#include "ConstantBuffer.h"
-#include "Core.h"
-#include "DescriptorHeap.h"
-#include "IndexBuffer.h"
 #include "Mesh.h"
-#include "PipelineState.h"
-#include "RootSignature.h"
-#include "SharedStruct.h"
-#include "VertexBuffer.h"
+#include "Engine.h"
 
 class MeshRenderer
 {
@@ -27,7 +19,7 @@ public:
 	MeshRenderer(Core* core, Mesh mesh);
 	MeshRenderer(Core* core, std::vector<Mesh> meshes);
 	bool Init();
-	void Update(RenderProperty tran);
+	void Update(Transform tran);
 	void Draw();
 };
 

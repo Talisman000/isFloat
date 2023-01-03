@@ -90,14 +90,14 @@ bool MeshRenderer::Init()
 
 	for (size_t i = 0; i < m_core->FrameBufferCount; i++)
 	{
-		m_constantBuffer[i] = new ConstantBuffer(device, sizeof(Transform));
+		m_constantBuffer[i] = new ConstantBuffer(device, sizeof(ShaderProperty));
 		if (!m_constantBuffer[i]->IsValid())
 		{
 			throw std::runtime_error("d");
 		}
 
 		// 変換行列の登録
-		auto ptr = m_constantBuffer[i]->GetPtr<Transform>();
+		auto ptr = m_constantBuffer[i]->GetPtr<ShaderProperty>();
 		ptr->World = XMMatrixIdentity();
 		ptr->View = XMMatrixLookAtRH(eyePos, targetPos, upward);
 		ptr->Proj = XMMatrixPerspectiveFovRH(fov, aspect, 0.3f, 1000.0f);
@@ -111,8 +111,8 @@ bool MeshRenderer::Init()
 	m_pipelineState = new PipelineState();
 	m_pipelineState->SetInputLayout(Vertex::InputLayout);
 	m_pipelineState->SetRootSignature(m_rootSignature->Get());
-	m_pipelineState->SetVS(L"./SimpleVS2.cso");
-	m_pipelineState->SetPS(L"./SimplePS2.cso");
+	m_pipelineState->SetVS(L"./Assets/cso/VSBase.cso");
+	m_pipelineState->SetPS(L"./Assets/cso/PSBase.cso");
 	m_pipelineState->Create(device);
 	if (!m_pipelineState->IsValid())
 	{
@@ -123,10 +123,10 @@ bool MeshRenderer::Init()
 	return true;
 }
 
-void MeshRenderer::Update(RenderProperty tran)
+void MeshRenderer::Update(Transform tran)
 {
 	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得
-	auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<Transform>(); // 現在のフレーム番号に対応する定数バッファを取得
+	auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<ShaderProperty>(); // 現在のフレーム番号に対応する定数バッファを取得
 	//currentTransform->World = DirectX::XMMatrixRotationY(tran.Position.y); // Y軸で回転させる
 	currentTransform->World = XMMatrixScaling(tran.Scale.x, tran.Scale.y, tran.Scale.z) *
 		XMMatrixRotationX(tran.Rotation.x) *

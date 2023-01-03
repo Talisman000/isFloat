@@ -18,20 +18,18 @@ private:
 	static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
 };
 
-struct alignas(256) Transform {
+struct alignas(256) ShaderProperty {
 	DirectX::XMMATRIX World; // ワールド行列
 	DirectX::XMMATRIX View; // ビュー行列
 	DirectX::XMMATRIX Proj; // 投影行列
 };
 
 
-// UnityベースのTransform
-struct RenderProperty
+struct Transform
 {
 	DirectX::XMFLOAT3 Position = { 0,0,0 };
 	DirectX::XMFLOAT3 Rotation = { 0,0,0 };
 	DirectX::XMFLOAT3 Scale = { 1,1,1 };
-	DirectX::XMFLOAT4 Color = { 1,1,1 ,1 };
 };
 
 

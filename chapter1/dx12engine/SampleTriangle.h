@@ -6,7 +6,7 @@ class SampleTriangle
 private:
 	MeshRenderer* meshRenderer;
 public:
-	RenderProperty transform;
+	Transform transform;
 	SampleTriangle(Core* core);
 	void Draw();
 };

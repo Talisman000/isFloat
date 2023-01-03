@@ -3,14 +3,19 @@
 #include <Windows.h>
 //#include "D3D12AppBase.h"
 //#include <stdexcept>
-
+#include <atlstr.h>
 //#include "CubeApp.h"
+#include <iostream>
 #include <random>
 
 #include "AssimpLoader.h"
 #include "Core.h"
+#include "dbgstream.h"
+#include "GameObject.h"
 #include "MeshRenderer.h"
 #include "SampleTriangle.h"
+#include "Util.h"
+#include "CpComponents.h"
 //#include "TriangleApp.h"
 
 const int WINDOW_WIDTH = 640;
@@ -41,8 +46,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	//TriangleRenderer triangleRenderer(&core);
 	//TriangleRenderer triangleRenderer2(&core);
 
-	//RenderProperty uniTransform;
-	//RenderProperty uniTransform2;
+	//Transform uniTransform;
+	//Transform uniTransform2;
 
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	std::random_device rnd;
@@ -98,11 +103,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			triangles.emplace_back(tri);
 		}
 
-		auto squareMesh = SquareMesh({1,1,1,1}, L"Assets/men.png");
+		auto squareMesh = SquareMesh({ 1,1,1,1 }, L"Assets/men.png");
 		auto mesh = MeshRenderer(&core, squareMesh);
 		//auto cubeMesh = CubeMesh({1,1,1,1}, L"Assets/test.png");
 		//auto mesh = MeshRenderer(&core, cubeMesh);
-		RenderProperty rp;
+		Transform rp;
 		//const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
 
 		//std::vector<Mesh> meshes;
@@ -121,7 +126,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		//}
 
 		//auto modelRenderer = MeshRenderer(&core, meshes);
-		//auto modelPos = RenderProperty();
+		//auto modelPos = Transform();
 		//modelPos.Position.z = -200;
 		//modelPos.Position.y = -100;
 
@@ -130,12 +135,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		//triangleRenderer.Init();
 		//triangleRenderer2.Init();
 
+		auto cubeMesh = CubeMesh({1,1,1,1}, L"Assets/test.png");
+
+		auto obj = GameObject::Create();
+		obj->AddComponent<CpRigidBody>();
+		auto cpMesh = obj->AddComponent<CpMeshRenderer>(-999);
+		cpMesh->SetMesh(&core, cubeMesh);
+
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&core));
 		ShowWindow(hwnd, nCmdShow);
 
 		MSG msg{};
+		Time::Init();
 		while (msg.message != WM_QUIT)
 		{
+			Time::SetCurrent();
+			float delta = Time::DeltaTime();
 			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&msg);
@@ -147,8 +162,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			//uniTransform.Rotation.x += 0.01f;
 			for (auto& tri : triangles)
 			{
-				tri.transform.Rotation.z += 0.01f;
-				tri.transform.Position.x += -0.01f;
+				tri.transform.Rotation.z += delta;
+				tri.transform.Position.x += -delta;
 				if (tri.transform.Position.x < -5)
 				{
 					tri.transform.Position.x = 5;
@@ -167,6 +182,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			mesh.Update(rp);
 
 			mesh.Draw();
+
+			obj->Update();
+			obj->Draw();
 
 			//modelRenderer.Update(modelPos);
 			//modelRenderer.Draw();
