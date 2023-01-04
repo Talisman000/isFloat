@@ -24,7 +24,7 @@ public:
 	Core();
 	virtual ~Core();
 
-	void DebugSummary();
+	void DebugSummary() const;
 
 	void Initialize(HWND hwnd);
 	void Cleanup();

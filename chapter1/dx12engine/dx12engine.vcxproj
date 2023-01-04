@@ -39,6 +39,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SharedStruct.cpp" />
     <ClCompile Include="Texture2D.cpp" />
+    <ClCompile Include="Texture2DCache.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
@@ -64,6 +65,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SharedStruct.h" />
     <ClInclude Include="Texture2D.h" />
+    <ClInclude Include="Texture2DCache.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Color.h" />

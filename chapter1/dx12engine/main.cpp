@@ -16,6 +16,8 @@
 #include "Time.h"
 #include "CpComponents.h"
 #include "KeyInput.h"
+#include "Texture2D.h"
+#include "Texture2DCache.h"
 #include "XMFLOATHelper.h"
 //#include "TriangleApp.h"
 
@@ -170,6 +172,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		core.Cleanup();
 		//CloseHandle();
 		backSquares.clear();
+		Texture2DCache::Clear();
 		core.Terminate();
 		return static_cast<int>(msg.wParam);
 	}
