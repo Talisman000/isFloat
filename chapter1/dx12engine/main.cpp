@@ -10,16 +10,17 @@
 
 #include "AssimpLoader.h"
 #include "Core.h"
-#include "dbgstream.h"
 #include "GameObject.h"
 #include "MeshRenderer.h"
-#include "SampleTriangle.h"
-#include "Util.h"
+//#include "SampleTriangle.h"
+#include "Time.h"
 #include "CpComponents.h"
+#include "KeyInput.h"
+#include "XMFLOATHelper.h"
 //#include "TriangleApp.h"
 
-const int WINDOW_WIDTH = 640;
-const int WINDOW_HEIGHT = 480;
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 600;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -41,116 +42,106 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-	//ModelApp theApp{};
-	Core core{};
-	//TriangleRenderer triangleRenderer(&core);
-	//TriangleRenderer triangleRenderer2(&core);
-
-	//Transform uniTransform;
-	//Transform uniTransform2;
-
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	std::random_device rnd;
-	std::uniform_real_distribution<> rand(-3.0, 3.0);
-	std::mt19937 mt(rnd());
-
-	// window class setting
-	WNDCLASSEX wc{};
-	wc.cbSize = sizeof(wc);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = WndProc;
-	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"HelloDirectX12";
-	RegisterClassEx(&wc);
-
-
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX;
-	RECT rect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-	AdjustWindowRect(&rect, dwStyle, FALSE);
-	auto hwnd = CreateWindow(wc.lpszClassName, L"HelloDirectX12",
-		dwStyle,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		rect.right - rect.left, rect.bottom - rect.top,
-		nullptr,
-		nullptr,
-		hInstance,
-		&core
-	);
 	try
 	{
+		//ModelApp theApp{};
+		Core core{};
+		//TriangleRenderer triangleRenderer(&core);
+		//TriangleRenderer triangleRenderer2(&core);
+
+		//Transform uniTransform;
+		//Transform uniTransform2;
+
+		CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		std::random_device rnd;
+		std::uniform_real_distribution<> rand(0, 1.0);
+		std::mt19937 mt(rnd());
+
+		// window class setting
+		WNDCLASSEX wc{};
+		wc.cbSize = sizeof(wc);
+		wc.style = CS_HREDRAW | CS_VREDRAW;
+		wc.lpfnWndProc = WndProc;
+		wc.hInstance = hInstance;
+		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.lpszClassName = L"HelloDirectX12";
+		RegisterClassEx(&wc);
+
+		DWORD dwStyle = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX;
+		RECT rect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+		AdjustWindowRect(&rect, dwStyle, FALSE);
+		auto hwnd = CreateWindow(wc.lpszClassName, L"Not_Gravity",
+			dwStyle,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			rect.right - rect.left, rect.bottom - rect.top,
+			nullptr,
+			nullptr,
+			hInstance,
+			&core
+		);
 		core.Initialize(hwnd);
-		std::vector<SampleTriangle> triangles;
-		for (int i = 0; i < 10; i++)
+
+		auto world = GameObject::Create();
+
+		std::vector<std::shared_ptr<GameObject>> backSquares;
+		for (int i = 0; i < 30; i++)
 		{
-			SampleTriangle tri(&core);
-			tri.transform.Position = {
-				static_cast<float>(rand(mt)),
-				static_cast<float>(rand(mt)),
+			//core.DebugSummary();
+			auto sq = GameObject::Create();
+			auto me = sq->AddComponent<CpMeshRenderer>();
+			auto trimesh = SquareMesh({ 1,1,1,1 });
+			me->SetMesh(&core, trimesh);
+			sq->SetParent(world);
+
+			auto rb = sq->AddComponent<CpRigidBody>();
+			rb->isGravity = false;
+			rb->velocity = {
+				static_cast<float>(rand(mt) * -8) - 5,
+				0,
 				0
 			};
-			tri.transform.Rotation = {
-				0,
-				0,
-				static_cast<float>(rand(mt))
+			sq->transform.Position = {
+				static_cast<float>(rand(mt) * 16) - 8,
+				static_cast<float>(rand(mt) * 4),
+				-2
 			};
-			auto s = std::abs(static_cast<float>(rand(mt))) * 0.5f;
-			tri.transform.Scale = {
+			auto s = 0.1f;
+			sq->transform.Scale = {
 				s,
-				s,
+				s * 0.1f,
 				s,
 			};
-			triangles.emplace_back(tri);
+			backSquares.emplace_back(sq);
 		}
 
-		auto squareMesh = SquareMesh({ 1,1,1,1 }, L"Assets/men.png");
-		auto mesh = MeshRenderer(&core, squareMesh);
-		//auto cubeMesh = CubeMesh({1,1,1,1}, L"Assets/test.png");
-		//auto mesh = MeshRenderer(&core, cubeMesh);
-		Transform rp;
-		//const wchar_t* modelFile = L"Assets/Alicia/FBX/Alicia_solid_Unity.FBX";
 
-		//std::vector<Mesh> meshes;
-		//ImportSettings importSetting = // これ自体は自作の読み込み設定構造体
-		//{
-		//	modelFile,
-		//	meshes,
-		//	false,
-		//	true // アリシアのモデルは、テクスチャのUVのVだけ反転してるっぽい？ので読み込み時にUV座標を逆転させる
-		//};
-
-		//AssimpLoader loader;
-		//if (!loader.Load(importSetting))
-		//{
-		//	throw std::runtime_error("model load failed");
-		//}
-
-		//auto modelRenderer = MeshRenderer(&core, meshes);
-		//auto modelPos = Transform();
-		//modelPos.Position.z = -200;
-		//modelPos.Position.y = -100;
-
-
-		//theApp.Initialize(hwnd);
-		//triangleRenderer.Init();
-		//triangleRenderer2.Init();
-
-		auto cubeMesh = CubeMesh({1,1,1,1}, L"Assets/test.png");
-
-		auto obj = GameObject::Create();
-		obj->AddComponent<CpRigidBody>();
-		auto cpMesh = obj->AddComponent<CpMeshRenderer>(-999);
-		cpMesh->SetMesh(&core, cubeMesh);
+		auto groundMesh = CubeMesh({ 0.2f,0.2f,0.2f,1.0f }, L"Assets/ground.tga");
+		auto groundObj = GameObject::Create();
+		auto cpMesh = groundObj->AddComponent<CpMeshRenderer>(-999);
+		groundObj->SetParent(world);
+		cpMesh->SetMesh(&core, groundMesh);
+		groundObj->transform.Position = { 0,-2,0 };
+		groundObj->transform.Scale = { 10,1,3 };
 
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&core));
 		ShowWindow(hwnd, nCmdShow);
 
 		MSG msg{};
 		Time::Init();
+		KeyInput::AddListen(VK_SPACE);
 		while (msg.message != WM_QUIT)
 		{
 			Time::SetCurrent();
 			float delta = Time::DeltaTime();
+			KeyInput::Update();
+			if (KeyInput::OnKeyDown(VK_SPACE))
+			{
+				OutputDebugString(L"space down");
+			}
+			if (KeyInput::OnKeyPress(VK_SPACE))
+			{
+				OutputDebugString(L"space press");
+			}
 			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&msg);
@@ -158,43 +149,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			}
 			core.BeginRender();
 
-			//uniTransform.Position.x += 0.01f;
-			//uniTransform.Rotation.x += 0.01f;
-			for (auto& tri : triangles)
+
+			for (auto& sq : backSquares)
 			{
-				tri.transform.Rotation.z += delta;
-				tri.transform.Position.x += -delta;
-				if (tri.transform.Position.x < -5)
+				if (sq->transform.Position.x < -8)
 				{
-					tri.transform.Position.x = 5;
+					sq->transform.Position.x = 8;
 				}
-				tri.Draw();
+				sq->Update();
+				sq->Draw();
 			}
 
-			rp.Rotation.x += 0.01f;
-			rp.Rotation.y += 0.01f;
-			rp.Position.x -= 0.01f;
-			if (rp.Position.x < -5)
-			{
-				rp.Position.x = 5;
-			}
 
-			mesh.Update(rp);
+			groundObj->Update();
+			groundObj->Draw();
 
-			mesh.Draw();
-
-			obj->Update();
-			obj->Draw();
-
-			//modelRenderer.Update(modelPos);
-			//modelRenderer.Draw();
 
 			core.EndRender();
-			//theApp.Render();
 		}
 		core.Cleanup();
 		//CloseHandle();
-		//theApp.Terminate();
+		backSquares.clear();
+		core.Terminate();
 		return static_cast<int>(msg.wParam);
 	}
 	catch (std::runtime_error e)

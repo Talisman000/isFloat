@@ -23,7 +23,7 @@ void CpMeshRenderer::SetMesh(Core* core, std::vector<Mesh> meshes)
 void CpMeshRenderer::Update()
 {
 	if(m_meshRenderer == nullptr) return;
-	m_meshRenderer->Update(m_parent->transform);
+	m_meshRenderer->Update(m_parent.lock()->GetAbsoluteTransform());
 }
 
 

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include  <Windows.h>
 
 #include "Component.h"
 #include "SharedStruct.h"
@@ -16,13 +17,17 @@ enum class Tag
 class GameObject : public std::enable_shared_from_this<GameObject>
 {
 	// AddComponent時にthisポインタを使用したいので、std::enable_shared_from_thisを継承する
-	// その際、生ポインタでGameObjectを作成することがないように、コンストラクタを隠蔽する
-	// 参考:https://www.kabuku.co.jp/developers/cpp_enable_shared_from_this
+
 	std::vector<std::shared_ptr<Component>> m_components;
 	Tag m_tag = Tag::Default;
+	std::weak_ptr<GameObject> parent;
 public:
 	GameObject() = default;
+	~GameObject(){OutputDebugString(L"GameObject Removed\n");}
 	Transform transform;
+	void Clear();
+	Transform GetAbsoluteTransform() const;
+	void SetParent(const std::shared_ptr<GameObject>& obj);
 	void Update() const;
 	void Draw() const;
 	template <class T>

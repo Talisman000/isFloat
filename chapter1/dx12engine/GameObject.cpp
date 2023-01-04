@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "Component.h"
+#include "XMFLOATHelper.h"
 
 //template <class T>
 //std::shared_ptr<T> GameObject::AddComponent(int priority)
@@ -32,11 +33,40 @@
 //		return nullptr;
 //}
 
+void GameObject::Clear()
+{
+	//for(auto& com : m_components)
+	//{
+	//	com.reset();
+	//}
+	//m_components.clear();
+}
+
+Transform GameObject::GetAbsoluteTransform() const
+{
+	if (parent.lock())
+	{
+		const auto parentTran = parent.lock()->GetAbsoluteTransform();
+		auto tran = transform;
+		tran.Position += parentTran.Position;
+		tran.Rotation += parentTran.Rotation;
+		tran.Scale *= parentTran.Scale;
+		return tran;
+	}
+	return transform;
+}
+
+void GameObject::SetParent(const std::shared_ptr<GameObject>& obj)
+{
+	parent = obj;
+}
+
 void GameObject::Update() const
 {
 	for (const auto& component : m_components)
 	{
-		component->Update();
+		if (component->GetActive()) 
+			component->Update();
 	}
 }
 
@@ -44,6 +74,7 @@ void GameObject::Draw() const
 {
 	for (const auto& component : m_components)
 	{
-		component->Draw();
+		if (component->GetActive()) 
+			component->Draw();
 	}
 }

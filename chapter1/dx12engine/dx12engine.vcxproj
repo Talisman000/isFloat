@@ -25,10 +25,10 @@
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CpMeshRenderer.cpp" />
-    <ClCompile Include="dbgstream.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
+    <ClCompile Include="KeyInput.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
@@ -36,9 +36,10 @@
     <ClCompile Include="CpRigidBody.cpp" />
     <ClCompile Include="RootSignature.cpp" />
     <ClCompile Include="SampleTriangle.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SharedStruct.cpp" />
     <ClCompile Include="Texture2D.cpp" />
-    <ClCompile Include="Util.cpp" />
+    <ClCompile Include="Time.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -48,11 +49,11 @@
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CpMeshRenderer.h" />
-    <ClInclude Include="dbgstream.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="IndexBuffer.h" />
+    <ClInclude Include="KeyInput.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="PipelineState.h" />
@@ -60,12 +61,14 @@
     <ClInclude Include="CpRigidBody.h" />
     <ClInclude Include="RootSignature.h" />
     <ClInclude Include="SampleTriangle.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="SharedStruct.h" />
     <ClInclude Include="Texture2D.h" />
-    <ClInclude Include="Util.h" />
+    <ClInclude Include="Time.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="CpComponents.h" />
+    <ClInclude Include="XMFLOATHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx12engine.rc" />

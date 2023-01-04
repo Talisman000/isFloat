@@ -1,21 +1,28 @@
 #include "CPRigidBody.h"
 
 #include "GameObject.h"
-#include "Util.h"
+#include "Time.h"
+#include "XMFLOATHelper.h"
 
 
 void CpRigidBody::Update()
 {
 	const auto delta = Time::DeltaTime();
 
-	if(isGravity)
+	// ‰Á‘¬“xŒvŽZ
+	if (isGravity)
 	{
-		velocity.x += m_property.Gravity.x * delta;
-		velocity.y += m_property.Gravity.y * delta;
-		velocity.z += m_property.Gravity.z * delta;
+		m_force += m_property.Gravity;
 	}
+	const auto forceDelta = m_force * delta;
+	velocity += forceDelta;
+	m_force *= 0;
 
-	m_parent->transform.Position.x += velocity.x * delta;
-	m_parent->transform.Position.y += velocity.y * delta;
-	m_parent->transform.Position.z += velocity.z * delta;
+	auto parent = m_parent.lock();
+	parent->transform.Position += velocity * delta;
+}
+
+void CpRigidBody::AddForce(XMFLOAT3 force)
+{
+	m_force += force;
 }
