@@ -1,5 +1,6 @@
 #include "Core.h"
 
+#include <DirectXMath.h>
 #include <stdexcept>
 
 Core::Core()
@@ -9,8 +10,17 @@ Core::Core()
 	m_frameIndex = 0;
 }
 
-Core::~Core()
+Core::~Core() = default;
+
+void Core::DebugSummary() const
 {
+	ID3D12DebugDevice* debugInterface = nullptr;
+	if (SUCCEEDED(m_device->QueryInterface(&debugInterface)))
+	{
+		debugInterface->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
+		debugInterface->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY);
+		debugInterface->Release();
+	}
 }
 
 void Core::Initialize(HWND hwnd)
@@ -34,22 +44,27 @@ void Core::Initialize(HWND hwnd)
 
 void Core::Cleanup()
 {
-	auto index = m_swapchain->GetCurrentBackBufferIndex();
-	auto fence = m_frameFences[index];
-	auto value = ++m_frameFenceValues[index];
+	const auto index = m_swapchain->GetCurrentBackBufferIndex();
+	const auto fence = m_frameFences[index];
+	const auto value = ++m_frameFenceValues[index];
 	m_commandQueue->Signal(fence.Get(), value);
 	fence->SetEventOnCompletion(value, m_fenceWaitEvent);
 	WaitForSingleObject(m_fenceWaitEvent, GpuWaitTimeout);
 }
 
-ID3D12Device* Core::GetDevice()
+void Core::Terminate()
 {
-	return m_device.Get();
+	DebugSummary();
 }
 
-ID3D12GraphicsCommandList* Core::GetCommandList()
+ComPtr<ID3D12Device> Core::GetDevice()
 {
-	return m_commandList.Get();
+	return m_device;
+}
+
+ComPtr<ID3D12GraphicsCommandList> Core::GetCommandList()
+{
+	return m_commandList;
 }
 
 std::shared_ptr<RootSignature> Core::GetRootSignature(int n)
@@ -76,7 +91,7 @@ HRESULT Core::EnableDebugLayer()
 			debug3->SetEnableGPUBasedValidation(true);
 		}
 #endif
-}
+	}
 #endif
 	return hr;
 }
@@ -200,21 +215,22 @@ HRESULT Core::CreateFence()
 			throw std::runtime_error("Failed CreateFence");
 		}
 	}
+	return hr;
 }
 
 void Core::CreateViewPort()
 {
-	m_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, float(width), float(height));
+	m_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
 }
 
 void Core::CreateScissorRect()
 {
-	m_scissorRect = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
+	m_scissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(width), static_cast<LONG>(height));
 }
 
 void Core::CreateRootSignatures()
 {
-	auto rootSignature = std::make_shared<RootSignature>(m_device.Get());
+	auto rootSignature = std::make_shared<RootSignature>(m_device);
 	m_rootSignatures.emplace_back(rootSignature);
 }
 
@@ -241,29 +257,6 @@ void Core::PrepareRenderTargetView()
 		m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
 		rtvHandle.ptr += m_rtvDescriptorSize;
 	}
-
-	return;
-	// create rtv descriptor heap
-	//HRESULT hr;
-	//D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{
-	//	D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-	//	FrameBufferCount,
-	//	D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0
-	//};
-	//hr = m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_heapRtv));
-	//if (FAILED(hr))
-	//{
-	//	throw std::runtime_error("Failed CreateDescriptorHeap(RTV)");
-	//}
-	//m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	//CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_heapRtv->GetCPUDescriptorHandleForHeapStart());
-	//for (UINT i = 0; i < FrameBufferCount; ++i)
-	//{
-	//	m_swapchain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i]));
-	//	m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-	//	// change reference descriptor
-	//	rtvHandle.Offset(1, m_rtvDescriptorSize);
-	//}
 }
 
 void Core::CreateDepthBuffer()
@@ -349,8 +342,12 @@ void Core::BeginRender()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(
 		m_heapRtv->GetCPUDescriptorHandleForHeapStart(),
 		m_frameIndex, m_rtvDescriptorSize);
-	const float clearColor[] = { 0.1f, 0.25f, 0.5f, 0.0f }; // ƒNƒŠƒAF
-	m_commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+	std::vector<float> vector(4);
+	vector[0] = clearColor.x;
+	vector[1] = clearColor.y;
+	vector[2] = clearColor.z;
+	vector[3] = clearColor.w;
+	m_commandList->ClearRenderTargetView(rtv, vector.data(), 0, nullptr);
 
 	// clear depth buffer
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsv(
@@ -375,7 +372,7 @@ void Core::EndRender()
 	// # render command end
 	m_commandList->Close();
 
-	ID3D12CommandList* lists[] = { m_commandList.Get() };
+	ID3D12CommandList* lists[] = {m_commandList.Get()};
 	m_commandQueue->ExecuteCommandLists(1, lists);
 	m_swapchain->Present(1, 0);
 	WaitPreviousFrame();
@@ -383,7 +380,7 @@ void Core::EndRender()
 
 void Core::WaitPreviousFrame()
 {
-	auto& fence = m_frameFences[m_frameIndex];
+	const auto& fence = m_frameFences[m_frameIndex];
 	const auto currentValue = ++m_frameFenceValues[m_frameIndex];
 	m_commandQueue->Signal(fence.Get(), currentValue);
 
@@ -397,4 +394,3 @@ void Core::WaitPreviousFrame()
 		WaitForSingleObject(m_fenceWaitEvent, GpuWaitTimeout);
 	}
 }
-

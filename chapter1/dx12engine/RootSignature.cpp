@@ -1,7 +1,7 @@
 #include "RootSignature.h"
 #include <stdexcept>
 
-RootSignature::RootSignature(ID3D12Device* device)
+RootSignature::RootSignature(const ComPtr<ID3D12Device>& device)
 {
 	auto flag = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // アプリケーションの入力アセンブラを使用する
 	flag |= D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS; // ドメインシェーダーのルートシグネチャへのアクセスを拒否する
@@ -59,7 +59,7 @@ bool RootSignature::IsValid()
 	return m_IsValid;
 }
 
-ID3D12RootSignature* RootSignature::Get()
+ComPtr<ID3D12RootSignature> RootSignature::Get() const
 {
 	return m_pRootSignature.Get();
 }

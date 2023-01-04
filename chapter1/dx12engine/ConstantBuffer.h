@@ -5,10 +5,10 @@
 class ConstantBuffer
 {
 public:
-	ConstantBuffer(ID3D12Device* device, size_t size); // コンストラクタで定数バッファを生成
+	ConstantBuffer(const ComPtr<ID3D12Device>& device, size_t size); // コンストラクタで定数バッファを生成
 	bool IsValid() const; // バッファ生成に成功したかを返す
 	D3D12_GPU_VIRTUAL_ADDRESS GetAddress() const; // バッファのGPU上のアドレスを返す
-	D3D12_CONSTANT_BUFFER_VIEW_DESC ViewDesc(); // 定数バッファビューを返す
+	D3D12_CONSTANT_BUFFER_VIEW_DESC ViewDesc() const; // 定数バッファビューを返す
 
 	void* GetPtr() const; // 定数バッファにマッピングされたポインタを返す
 

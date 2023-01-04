@@ -2,7 +2,7 @@
 #include "d3dx12.h"
 #include <stdexcept>
 
-VertexBuffer::VertexBuffer(ID3D12Device* device, size_t size, size_t stride, const void* pInitData)
+VertexBuffer::VertexBuffer(ComPtr<ID3D12Device> device, size_t size, size_t stride, const void* pInitData)
 {
 
 	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); 	// ヒーププロパティ
@@ -15,7 +15,7 @@ VertexBuffer::VertexBuffer(ID3D12Device* device, size_t size, size_t stride, con
 		&desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(m_pBuffer.GetAddressOf()));
+		IID_PPV_ARGS(m_pBuffer.ReleaseAndGetAddressOf()));
 
 	if (FAILED(hr))
 	{

@@ -19,7 +19,7 @@ class DescriptorHeap
 {
 public:
 	DescriptorHeap(Core* core); // コンストラクタで生成する
-	ID3D12DescriptorHeap* GetHeap(); // ディスクリプタヒープを返す
+	ComPtr<ID3D12DescriptorHeap> GetHeap(); // ディスクリプタヒープを返す
 	std::shared_ptr<DescriptorHandle> Register(Texture2D* texture); // テクスチャーをディスクリプタヒープに登録し、ハンドルを返す
 
 private:

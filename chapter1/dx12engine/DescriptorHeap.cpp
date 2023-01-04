@@ -33,9 +33,9 @@ DescriptorHeap::DescriptorHeap(Core* core)
 	m_IsValid = true;
 }
 
-ID3D12DescriptorHeap* DescriptorHeap::GetHeap()
+ComPtr<ID3D12DescriptorHeap> DescriptorHeap::GetHeap()
 {
-	return m_pHeap.Get();
+	return m_pHeap;
 }
 
 std::shared_ptr<DescriptorHandle> DescriptorHeap::Register(Texture2D* texture)
@@ -60,7 +60,7 @@ std::shared_ptr<DescriptorHandle> DescriptorHeap::Register(Texture2D* texture)
 	auto device = m_core->GetDevice();
 	auto resource = texture->Resource();
 	auto desc = texture->ViewDesc();
-	device->CreateShaderResourceView(resource, &desc, pHandle->HandleCPU); // シェーダーリソースビュー作成
+	device->CreateShaderResourceView(resource.Get(), &desc, pHandle->HandleCPU); // シェーダーリソースビュー作成
 
 	m_pHandles.push_back(pHandle);
 	return pHandle; // ハンドルを返す

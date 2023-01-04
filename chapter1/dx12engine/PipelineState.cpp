@@ -31,9 +31,9 @@ void PipelineState::SetInputLayout(D3D12_INPUT_LAYOUT_DESC layout)
 	desc.InputLayout = layout;
 }
 
-void PipelineState::SetRootSignature(ID3D12RootSignature* rootSignature)
+void PipelineState::SetRootSignature(ComPtr<ID3D12RootSignature> rootSignature)
 {
-	desc.pRootSignature = rootSignature;
+	desc.pRootSignature = rootSignature.Get();
 }
 
 void PipelineState::SetVS(std::wstring filePath)
@@ -60,7 +60,7 @@ void PipelineState::SetPS(std::wstring filePath)
 	desc.PS = CD3DX12_SHADER_BYTECODE(m_pPSBlob.Get());
 }
 
-void PipelineState::Create(ID3D12Device* device)
+void PipelineState::Create(ComPtr<ID3D12Device> device)
 {
 	// パイプラインステートを生成
 	auto hr = device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(m_pPipelineState.ReleaseAndGetAddressOf()));

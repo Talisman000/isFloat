@@ -9,12 +9,14 @@ class GameObject;
 // éQçl: https://qiita.com/harayuu10/items/bf6d73353efa45212200
 class Component
 {
+private:
+	bool isActive = true;
 protected:
-	std::shared_ptr<GameObject> m_parent;
+	std::weak_ptr<GameObject> m_parent;
 public:
-	virtual ~Component() = default;
-	Component(std::shared_ptr<GameObject> gameObject, const int priority = 0) : m_priority(priority),
-	                                                                                     m_parent(std::move(gameObject)) {}
+	virtual ~Component() { OutputDebugString(L"Component Removed\n"); }
+	Component(std::shared_ptr<GameObject> gameObject, const int priority = 0) : m_parent(std::move(gameObject)),
+		m_priority(priority) {}
 	int m_priority = 0;
 	int GetPriority() const;
 	virtual void Start() {}

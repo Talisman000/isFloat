@@ -6,9 +6,9 @@
 class RootSignature
 {
 public:
-	RootSignature(ID3D12Device* device); // コンストラクタでルートシグネチャを生成
+	RootSignature(const ComPtr<ID3D12Device>& device); // コンストラクタでルートシグネチャを生成
 	bool IsValid(); // ルートシグネチャの生成に成功したかどうかを返す
-	ID3D12RootSignature* Get(); // ルートシグネチャを返す
+	ComPtr<ID3D12RootSignature> Get() const; // ルートシグネチャを返す
 
 private:
 	bool m_IsValid = false; // ルートシグネチャの生成に成功したかどうか

@@ -3,6 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <d3d12.h>
+#include <DirectXMath.h>
 #include <dxgi1_6.h>
 #include <string>
 #include <vector>
@@ -23,11 +24,14 @@ public:
 	Core();
 	virtual ~Core();
 
-	void Initialize(HWND hwnd);
-	virtual void Cleanup();
+	void DebugSummary();
 
-	ID3D12Device* GetDevice();
-	ID3D12GraphicsCommandList* GetCommandList();
+	void Initialize(HWND hwnd);
+	void Cleanup();
+	void Terminate();
+
+	ComPtr<ID3D12Device> GetDevice();
+	ComPtr<ID3D12GraphicsCommandList> GetCommandList();
 	std::shared_ptr<RootSignature> GetRootSignature(int n);
 
 

@@ -90,7 +90,7 @@ bool MeshRenderer::Init()
 
 	for (size_t i = 0; i < m_core->FrameBufferCount; i++)
 	{
-		m_constantBuffer[i] = new ConstantBuffer(device, sizeof(ShaderProperty));
+		m_constantBuffer[i] = std::make_shared<ConstantBuffer>(device, sizeof(ShaderProperty));
 		if (!m_constantBuffer[i]->IsValid())
 		{
 			throw std::runtime_error("d");
@@ -103,12 +103,12 @@ bool MeshRenderer::Init()
 		ptr->Proj = XMMatrixPerspectiveFovRH(fov, aspect, 0.3f, 1000.0f);
 	}
 
-	m_rootSignature = m_core->GetRootSignature(0).get();
+	m_rootSignature = m_core->GetRootSignature(0);
 	if (!m_rootSignature->IsValid())
 	{
 		throw std::runtime_error("d");
 	}
-	m_pipelineState = new PipelineState();
+	m_pipelineState = std::make_shared<PipelineState>();
 	m_pipelineState->SetInputLayout(Vertex::InputLayout);
 	m_pipelineState->SetRootSignature(m_rootSignature->Get());
 	m_pipelineState->SetVS(L"./Assets/cso/VSBase.cso");
@@ -142,7 +142,7 @@ void MeshRenderer::Draw()
 
 
 	for (int i = 0; i < m_meshes.size(); i++) {
-		commandList->SetGraphicsRootSignature(m_rootSignature->Get());
+		commandList->SetGraphicsRootSignature(m_rootSignature->Get().Get());
 		commandList->SetPipelineState(m_pipelineState->Get());
 		commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer[currentIndex]->GetAddress());
 
@@ -154,7 +154,7 @@ void MeshRenderer::Draw()
 		commandList->IASetIndexBuffer(&ibView); // インデックスバッファをセットする
 
 		auto pDescriptorHeap = m_descriptorHeap->GetHeap();
-		commandList->SetDescriptorHeaps(1, &pDescriptorHeap); // 使用するディスクリプタヒープをセット
+		commandList->SetDescriptorHeaps(1, pDescriptorHeap.GetAddressOf()); // 使用するディスクリプタヒープをセット
 		commandList->SetGraphicsRootDescriptorTable(1, m_materialHandles[i]->HandleGPU); // そのメッシュに対応するディスクリプタテーブルをセット
 
 		commandList->DrawIndexedInstanced(m_indexBuffers[i]->IndexCount(), 1, 0, 0, 0); // 6個のインデックスで描画する（三角形の時と関数名が違うので注意）

@@ -4,7 +4,7 @@
 class VertexBuffer
 {
 public:
-	VertexBuffer(ID3D12Device* device, size_t size, size_t stride, const void* pInitData); // コンストラクタでバッファを生成
+	VertexBuffer(ComPtr<ID3D12Device> device, size_t size, size_t stride, const void* pInitData); // コンストラクタでバッファを生成
 	[[nodiscard]] D3D12_VERTEX_BUFFER_VIEW View() const; // 頂点バッファビューを取得
 	[[nodiscard]] bool IsValid() const; // バッファの生成に成功したかを取得
 

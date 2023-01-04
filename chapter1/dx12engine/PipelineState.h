@@ -10,10 +10,10 @@ class PipelineState
 	bool IsValid(); // 生成に成功したかどうかを返す
 
 	void SetInputLayout(D3D12_INPUT_LAYOUT_DESC layout); // 入力レイアウトを設定
-	void SetRootSignature(ID3D12RootSignature* rootSignature); // ルートシグネチャを設定
+	void SetRootSignature(ComPtr<ID3D12RootSignature> rootSignature); // ルートシグネチャを設定
 	void SetVS(std::wstring filePath); // 頂点シェーダーを設定
 	void SetPS(std::wstring filePath); // ピクセルシェーダーを設定
-	void Create(ID3D12Device* Create); // パイプラインステートを生成
+	void Create(ComPtr<ID3D12Device> Create); // パイプラインステートを生成
 
 	ID3D12PipelineState* Get();
 

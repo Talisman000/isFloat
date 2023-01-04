@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "d3dx12.h"
 
-IndexBuffer::IndexBuffer(ID3D12Device* device, size_t size, int count, const uint32_t* pInitData)
+IndexBuffer::IndexBuffer(ComPtr<ID3D12Device> device, size_t size, int count, const uint32_t* pInitData)
 {
 	m_count = count;
 	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD); // ヒーププロパティ
@@ -15,7 +15,7 @@ IndexBuffer::IndexBuffer(ID3D12Device* device, size_t size, int count, const uin
 		&desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(m_pBuffer.GetAddressOf()));
+		IID_PPV_ARGS(m_pBuffer.ReleaseAndGetAddressOf()));
 	if (FAILED(hr))
 	{
 		std::runtime_error("Create index buffer resource Failed");
