@@ -39,6 +39,7 @@ public:
 	const UINT FrameBufferCount = 2;
 	int width = 0;
 	int height = 0;
+	DirectX::XMFLOAT4 clearColor = {0.5,0.5,0.5,0.5};
 private: // 描画に使用するDirectX12のオブジェクト
 	// なるべく生ポインタを使わずスマートポインタComPtrを使用する
 
