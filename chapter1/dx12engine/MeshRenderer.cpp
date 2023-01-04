@@ -9,6 +9,7 @@
 
 #include "DescriptorHeap.h"
 #include "Texture2D.h"
+#include "Texture2DCache.h"
 
 using namespace DirectX;
 
@@ -66,19 +67,17 @@ bool MeshRenderer::Init()
 
 	for (size_t i = 0; i < m_meshes.size(); i++)
 	{
-		if (m_meshes[i].DiffuseMap != L"")
+		auto& diffuseMap = m_meshes[i].DiffuseMap;
+		Texture2D* mainTex = nullptr;
+		auto texPath = diffuseMap != L"" ? ReplaceExtension(diffuseMap, "tga") : L"";
+		mainTex = Texture2DCache::Find(texPath);
+		if (mainTex == nullptr)
 		{
-			auto texPath = ReplaceExtension(m_meshes[i].DiffuseMap, "tga"); // ‚à‚Æ‚à‚Æ‚Ípsd‚É‚È‚Á‚Ä‚¢‚Ä‚¿‚å‚Á‚Æ‚ß‚ñ‚Ç‚©‚Á‚½‚Ì‚ÅA“¯«‚³‚ê‚Ä‚¢‚étga‚ð“Ç‚Ýž‚Þ
-			auto mainTex = Texture2D::Get(m_core, texPath);
-			auto handle = m_descriptorHeap->Register(mainTex);
-			m_materialHandles.push_back(handle);
+			mainTex = texPath != L"" ? Texture2D::Get(m_core, texPath):Texture2D::GetWhite(m_core);
+			Texture2DCache::Register(texPath, mainTex);
 		}
-		else
-		{
-			auto mainTex = Texture2D::GetWhite(m_core);
-			auto handle = m_descriptorHeap->Register(mainTex);
-			m_materialHandles.push_back(handle);
-		}
+		auto handle = m_descriptorHeap->Register(mainTex);
+		m_materialHandles.push_back(handle);
 	}
 
 
