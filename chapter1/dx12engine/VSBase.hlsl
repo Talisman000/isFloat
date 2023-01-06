@@ -31,9 +31,18 @@ VSOutput vert(VSInput input)
 	const float4 worldPos = mul(World, localPos); // ワールド座標に変換
 	const float4 viewPos = mul(View, worldPos); // ビュー座標に変換
 	const float4 projPos = mul(Proj, viewPos); // 投影変換
+	float3 nor;
+	float  col;
+	nor = mul(input.normal, World).xyz;
+	nor = normalize(nor);
+	const float3 Light = normalize(float3(-1.0f, 0.5f, 1.0f));
+	col = saturate(dot(nor, (float3)Light));
+	col = col * 0.3f + 0.7f;
+
 
 	output.svpos = projPos; // 投影変換された座標をピクセルシェーダーに渡す
-	output.color = input.color; // 頂点色をそのままピクセルシェーダーに渡す
+
+	output.color = input.color * float4(col, col, col, 1); // 頂点色をそのままピクセルシェーダーに渡す
 	output.uv = input.uv;
 	return output;
 }
