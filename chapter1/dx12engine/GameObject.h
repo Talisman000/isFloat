@@ -4,6 +4,7 @@
 #include <vector>
 #include  <Windows.h>
 
+#include "Random.h"
 #include "Component.h"
 #include "SharedStruct.h"
 
@@ -48,7 +49,7 @@ public:
 	{
 		for (auto& component : m_components)
 		{
-			auto buff = dynamic_cast<std::shared_ptr<T>>(component);
+			auto buff = std::dynamic_pointer_cast<T>(component);
 			if (buff != nullptr)
 			{
 				return buff;
