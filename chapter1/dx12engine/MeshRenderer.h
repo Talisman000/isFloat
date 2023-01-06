@@ -20,7 +20,8 @@ public:
 	MeshRenderer(Core* core, Mesh mesh);
 	MeshRenderer(Core* core, std::vector<Mesh> meshes);
 	bool Init();
-	void Update(Transform tran);
+	void Update(Transform tran) const;
 	void Draw();
+	void DrawIndexed(int n);
 };
 

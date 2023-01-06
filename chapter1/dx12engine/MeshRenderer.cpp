@@ -81,11 +81,11 @@ bool MeshRenderer::Init()
 	}
 
 
-	auto eyePos = XMVectorSet(0.0f, 0.0f, 10.0f, 0.0f); // 視点の位置
-	auto targetPos = XMVectorZero(); // 視点を向ける座標
-	auto upward = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // 上方向を表すベクトル
-	auto fov = XMConvertToRadians(37.5); // 視野角
-	auto aspect = static_cast<float>(m_core->width) / static_cast<float>(m_core->height); // アスペクト比
+	const auto eyePos = XMVectorSet(0.0f, 0.0f, 10.0f, 0.0f); // 視点の位置
+	const auto targetPos = XMVectorZero(); // 視点を向ける座標
+	const auto upward = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // 上方向を表すベクトル
+	constexpr auto fov = XMConvertToRadians(37.5); // 視野角
+	const auto aspect = static_cast<float>(m_core->width) / static_cast<float>(m_core->height); // アスペクト比
 
 	for (size_t i = 0; i < m_core->FrameBufferCount; i++)
 	{
@@ -122,10 +122,10 @@ bool MeshRenderer::Init()
 	return true;
 }
 
-void MeshRenderer::Update(Transform tran)
+void MeshRenderer::Update(const Transform tran) const
 {
-	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得
-	auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<ShaderProperty>(); // 現在のフレーム番号に対応する定数バッファを取得
+	const auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得
+	const auto currentTransform = m_constantBuffer[currentIndex]->GetPtr<ShaderProperty>(); // 現在のフレーム番号に対応する定数バッファを取得
 	//currentTransform->World = DirectX::XMMatrixRotationY(tran.Position.y); // Y軸で回転させる
 	currentTransform->World = XMMatrixScaling(tran.Scale.x, tran.Scale.y, tran.Scale.z) *
 		XMMatrixRotationX(tran.Rotation.x) *
@@ -134,29 +134,37 @@ void MeshRenderer::Update(Transform tran)
 		XMMatrixTranslation(tran.Position.x, tran.Position.y, tran.Position.z);
 }
 
+
 void MeshRenderer::Draw()
 {
-	auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得する
-	auto commandList = m_core->GetCommandList(); // コマンドリスト
-
-
 	for (int i = 0; i < m_meshes.size(); i++) {
-		commandList->SetGraphicsRootSignature(m_rootSignature->Get().Get());
-		commandList->SetPipelineState(m_pipelineState->Get());
-		commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer[currentIndex]->GetAddress());
-
-		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		auto vbView = m_vertexBuffers[i]->View();
-		auto ibView = m_indexBuffers[i]->View(); // インデックスバッファビュー
-
-		commandList->IASetVertexBuffers(0, 1, &vbView);
-		commandList->IASetIndexBuffer(&ibView); // インデックスバッファをセットする
-
-		auto pDescriptorHeap = m_descriptorHeap->GetHeap();
-		commandList->SetDescriptorHeaps(1, pDescriptorHeap.GetAddressOf()); // 使用するディスクリプタヒープをセット
-		commandList->SetGraphicsRootDescriptorTable(1, m_materialHandles[i]->HandleGPU); // そのメッシュに対応するディスクリプタテーブルをセット
-
-		commandList->DrawIndexedInstanced(m_indexBuffers[i]->IndexCount(), 1, 0, 0, 0); // 6個のインデックスで描画する（三角形の時と関数名が違うので注意）
+		DrawIndexed(i);
 	}
 
+}
+
+void MeshRenderer::DrawIndexed(const int n)
+{
+	if (m_meshes.size() <= n)
+	{
+		OutputDebugStringA("[Warning] DrawIndexed out of range\n");
+	}
+	const auto currentIndex = m_core->m_frameIndex; // 現在のフレーム番号を取得する
+	const auto commandList = m_core->GetCommandList(); // コマンドリスト
+	commandList->SetGraphicsRootSignature(m_rootSignature->Get().Get());
+	commandList->SetPipelineState(m_pipelineState->Get());
+	commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer[currentIndex]->GetAddress());
+
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	const auto vbView = m_vertexBuffers[n]->View();
+	const auto ibView = m_indexBuffers[n]->View(); // インデックスバッファビュー
+
+	commandList->IASetVertexBuffers(0, 1, &vbView);
+	commandList->IASetIndexBuffer(&ibView); // インデックスバッファをセットする
+
+	auto pDescriptorHeap = m_descriptorHeap->GetHeap();
+	commandList->SetDescriptorHeaps(1, pDescriptorHeap.GetAddressOf()); // 使用するディスクリプタヒープをセット
+	commandList->SetGraphicsRootDescriptorTable(1, m_materialHandles[n]->HandleGPU); // そのメッシュに対応するディスクリプタテーブルをセット
+
+	commandList->DrawIndexedInstanced(m_indexBuffers[n]->IndexCount(), 1, 0, 0, 0); // 6個のインデックスで描画する（三角形の時と関数名が違うので注意）
 }
