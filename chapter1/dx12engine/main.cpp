@@ -1,25 +1,16 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
-//#include "D3D12AppBase.h"
-//#include <stdexcept>
 #include <atlstr.h>
-//#include "CubeApp.h"
-#include <iostream>
 #include <random>
 
-#include "AssimpLoader.h"
 #include "Core.h"
-#include "GameObject.h"
-#include "MeshRenderer.h"
-//#include "SampleTriangle.h"
 #include "Time.h"
-#include "CpComponents.h"
-#include "KeyInput.h"
+#include "GameScene.h"
 #include "Texture2D.h"
 #include "Texture2DCache.h"
 #include "XMFLOATHelper.h"
-//#include "TriangleApp.h"
+//#include "dsound.h"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
@@ -72,7 +63,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		DWORD dwStyle = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX;
 		RECT rect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
 		AdjustWindowRect(&rect, dwStyle, FALSE);
-		auto hwnd = CreateWindow(wc.lpszClassName, L"Not_Gravity",
+		auto hwnd = CreateWindow(wc.lpszClassName, L"!isFloat",
 			dwStyle,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			rect.right - rect.left, rect.bottom - rect.top,
@@ -82,97 +73,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			&core
 		);
 		core.Initialize(hwnd);
-
-		auto world = GameObject::Create();
-
-		std::vector<std::shared_ptr<GameObject>> backSquares;
-		for (int i = 0; i < 30; i++)
-		{
-			//core.DebugSummary();
-			auto sq = GameObject::Create();
-			auto me = sq->AddComponent<CpMeshRenderer>();
-			auto trimesh = SquareMesh({ 1,1,1,1 });
-			me->SetMesh(&core, trimesh);
-			sq->SetParent(world);
-
-			auto rb = sq->AddComponent<CpRigidBody>();
-			rb->isGravity = false;
-			rb->velocity = {
-				static_cast<float>(rand(mt) * -8) - 5,
-				0,
-				0
-			};
-			sq->transform.Position = {
-				static_cast<float>(rand(mt) * 16) - 8,
-				static_cast<float>(rand(mt) * 4),
-				-2
-			};
-			auto s = 0.1f;
-			sq->transform.Scale = {
-				s,
-				s * 0.1f,
-				s,
-			};
-			backSquares.emplace_back(sq);
-		}
-
-
-		auto groundMesh = CubeMesh({ 0.2f,0.2f,0.2f,1.0f }, L"Assets/ground.tga");
-		auto groundObj = GameObject::Create();
-		auto cpMesh = groundObj->AddComponent<CpMeshRenderer>(-999);
-		groundObj->SetParent(world);
-		cpMesh->SetMesh(&core, groundMesh);
-		groundObj->transform.Position = { 0,-2,0 };
-		groundObj->transform.Scale = { 10,1,3 };
-
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&core));
 		ShowWindow(hwnd, nCmdShow);
-
 		MSG msg{};
-		Time::Init();
-		KeyInput::AddListen(VK_SPACE);
-		while (msg.message != WM_QUIT)
 		{
-			Time::SetCurrent();
-			float delta = Time::DeltaTime();
-			KeyInput::Update();
-			if (KeyInput::OnKeyDown(VK_SPACE))
+			auto gameScene = GameScene(&core);
+			gameScene.Start();
+			while (msg.message != WM_QUIT)
 			{
-				OutputDebugString(L"space down");
-			}
-			if (KeyInput::OnKeyPress(VK_SPACE))
-			{
-				OutputDebugString(L"space press");
-			}
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			core.BeginRender();
-
-
-			for (auto& sq : backSquares)
-			{
-				if (sq->transform.Position.x < -8)
+				if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 				{
-					sq->transform.Position.x = 8;
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
 				}
-				sq->Update();
-				sq->Draw();
+				gameScene.Update();
+				gameScene.Draw();
 			}
-
-
-			groundObj->Update();
-			groundObj->Draw();
-
-
-			core.EndRender();
+			core.Cleanup();
+			Texture2DCache::Clear();
 		}
-		core.Cleanup();
-		//CloseHandle();
-		backSquares.clear();
-		Texture2DCache::Clear();
 		core.Terminate();
 		return static_cast<int>(msg.wParam);
 	}

@@ -24,20 +24,26 @@
     <ClCompile Include="ComPtr.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="CpAnimatedMeshRenderer.cpp" />
     <ClCompile Include="CpMeshRenderer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="KeyInput.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="CpNumMeshRenderer.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="CpRigidBody.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="RootSignature.cpp" />
     <ClCompile Include="SampleTriangle.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SharedStruct.cpp" />
+    <ClCompile Include="SoundLoader.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="Texture2DCache.cpp" />
     <ClCompile Include="Time.cpp" />
@@ -49,21 +55,27 @@
     <ClInclude Include="ComPtr.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="CpAnimatedMeshRenderer.h" />
     <ClInclude Include="CpMeshRenderer.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameScene.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="CpNumMeshRenderer.h" />
     <ClInclude Include="PipelineState.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="CpRigidBody.h" />
     <ClInclude Include="RootSignature.h" />
     <ClInclude Include="SampleTriangle.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SharedStruct.h" />
+    <ClInclude Include="SoundLoader.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Texture2D.h" />
     <ClInclude Include="Texture2DCache.h" />
     <ClInclude Include="Time.h" />
@@ -187,13 +199,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include\assimp;$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VcpkgRoot)include\;C:\Program Files (x86)\OpenAL 1.1 SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\sk\source\repos\Talisman000\directx12programming\chapter1\packages\Assimp_native_4.1.4.1.0\build\native\lib;$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);assimp-vc140-mtd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -205,7 +217,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include\assimp;$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include\assimp;$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include;C:\Program Files (x86)\OpenAL 1.1 SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
