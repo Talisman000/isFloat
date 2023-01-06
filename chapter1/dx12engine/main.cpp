@@ -10,7 +10,6 @@
 #include "Texture2D.h"
 #include "Texture2DCache.h"
 #include "XMFLOATHelper.h"
-//#include "dsound.h"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
@@ -57,7 +56,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		wc.lpfnWndProc = WndProc;
 		wc.hInstance = hInstance;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.lpszClassName = L"HelloDirectX12";
+		wc.lpszClassName = L"!isFloat";
 		RegisterClassEx(&wc);
 
 		DWORD dwStyle = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX;
@@ -77,20 +76,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		ShowWindow(hwnd, nCmdShow);
 		MSG msg{};
 		{
-			auto gameScene = GameScene(&core);
-			gameScene.Start();
+			SceneState prev = SceneState::Running;
+			auto gameScene = new GameScene(&core);
+			gameScene->Start();
 			while (msg.message != WM_QUIT)
 			{
+				if(prev == SceneState::Reload)
+				{
+					gameScene->Start();
+					prev = SceneState::Running;
+					continue;
+				};
 				if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 				{
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}
-				gameScene.Update();
-				gameScene.Draw();
+				auto state = gameScene->Update();
+				prev = state;
+				gameScene->Draw();
+				if (state == SceneState::Reload)
+				{
+					core.Cleanup();
+					delete gameScene;
+					gameScene = new GameScene(&core);
+				}
 			}
 			core.Cleanup();
 			Texture2DCache::Clear();
+			delete gameScene;
 		}
 		core.Terminate();
 		return static_cast<int>(msg.wParam);

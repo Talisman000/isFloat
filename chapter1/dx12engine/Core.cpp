@@ -40,6 +40,7 @@ void Core::Initialize(HWND hwnd)
 	PrepareRenderTargetView();
 	CreateDepthBuffer();
 	CreateRootSignatures();
+	CreateSoundInterface(hwnd);
 }
 
 void Core::Cleanup()
@@ -65,6 +66,11 @@ ComPtr<ID3D12Device> Core::GetDevice()
 ComPtr<ID3D12GraphicsCommandList> Core::GetCommandList()
 {
 	return m_commandList;
+}
+
+ComPtr<IDirectSound8> Core::GetSoundInterface()
+{
+	return m_soundInterface;
 }
 
 std::shared_ptr<RootSignature> Core::GetRootSignature(int n)
@@ -234,6 +240,15 @@ void Core::CreateRootSignatures()
 	m_rootSignatures.emplace_back(rootSignature);
 }
 
+void Core::CreateSoundInterface(HWND hwnd)
+{
+	m_soundInterface = nullptr;
+	if (FAILED(DirectSoundCreate8(nullptr, &m_soundInterface, nullptr))) {
+		OutputDebugString(L"Create DirectSound failed");
+	}
+	m_soundInterface->SetCooperativeLevel(hwnd, DSSCL_PRIORITY);
+}
+
 void Core::PrepareRenderTargetView()
 {
 	// RTV用のディスクリプタヒープを作成する
@@ -372,7 +387,7 @@ void Core::EndRender()
 	// # render command end
 	m_commandList->Close();
 
-	ID3D12CommandList* lists[] = {m_commandList.Get()};
+	ID3D12CommandList* lists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(1, lists);
 	m_swapchain->Present(1, 0);
 	WaitPreviousFrame();

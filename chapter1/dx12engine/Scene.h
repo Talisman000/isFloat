@@ -3,6 +3,12 @@
 #include "KeyInput.h"
 #include "Time.h"
 
+enum SceneState
+{
+	Running,
+	Reload
+};
+
 class Scene
 {
 protected:
@@ -11,8 +17,9 @@ public:
 	virtual ~Scene() = default;
 	explicit Scene(Core* core) : core(core) {}
 	virtual void Start() {}
-	virtual void Update() {
+	virtual SceneState Update() {
 		KeyInput::Update();
+		return SceneState::Running;
 	}
 	virtual void Draw() {};
 	virtual void Remove() {};

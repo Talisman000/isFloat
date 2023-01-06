@@ -9,19 +9,21 @@
 #include "KeyInput.h"
 #include "Time.h"
 #include "XMFLOATHelper.h"
-//#include "Windows.h"
-//#pragma comment ( lib, "dxguid.lib" )
-//#pragma comment ( lib, "dsound.lib" )
-//#include "mmsystem.h"
-//#include "dsound.h"
-//#include "SoundManager.h"
-
 
 
 void GameScene::Start()
 {
-	//SoundManager test = SoundManager(core);
-	//test.Register();
+	InitData();
+	if (m_soundManager == nullptr)
+	{
+		m_soundManager = std::make_shared<SoundManager>();
+		m_soundManager->Register("score", 0, "Assets/Audio/score.wav");
+		m_soundManager->Register("jump", 1, "Assets/Audio/jump.wav");
+		m_soundManager->Register("isFloat", 2, "Assets/Audio/isFloat.wav");
+		m_soundManager->Register("bgm", 3, "Assets/Audio/bgm.wav");
+		m_soundManager->Register("damage", 4, "Assets/Audio/damage.wav");
+	}
+
 	m_world = GameObject::Create();
 
 	for (int i = 0; i < 30; i++)
@@ -88,13 +90,13 @@ void GameScene::Start()
 		meshRenderer->SetMeshes(core, meshes);
 		meshRenderer->RegisterAnimation("default", { 0.05f, true, {0} });
 		meshRenderer->RegisterAnimation("run", { 0.05f, true, {0,1} });
-		meshRenderer->RegisterAnimation("jump", { 0.05f, false, {2,3,4} });
 		meshRenderer->RegisterAnimation("air", { 0.05f, true, {4} });
 		meshRenderer->RegisterAnimation("fall", { 0.05f, true, {5} });
 		meshRenderer->RegisterAnimation("float", { 0.05f, true, {6,7,8,9} });
+		meshRenderer->RegisterAnimation("damage", { 0.05f, true, {8} });
 		meshRenderer->ChangeAnimation("default");
 		m_player->SetParent(m_world);
-		m_player->transform.Position = { -3, m_playerMinY, 0 };
+		m_player->transform.Position = { -3, m_playerMinY + 0.01f, 0 };
 		auto scale = 0.25f;
 		m_player->transform.Scale = { scale,scale,scale, };
 		m_playerFloatEnergy = m_playerFloatEnergyMax;
@@ -137,15 +139,123 @@ void GameScene::Start()
 		meshRenderer->SetMesh(core, mesh);
 	}
 
+	// がめおべら
+	{
+		m_gameOver = GameObject::Create();
+		m_gameOver->transform.Position = { 0, 1.5, 2 };
+		m_gameOver->transform.Scale = { 2.5 , 1.5, 1 };
+		m_gameOver->transform.Scale *= 0.4;
+		const auto meshRenderer = m_gameOver->AddComponent<CpMeshRenderer>();
+		const auto mesh = SquareMesh({ 1,1,1,1 }, L"Assets/gameover.png");
+		meshRenderer->SetMesh(core, mesh);
+	}
+
+
 	KeyInput::AddListen(VK_SPACE);
 	//core->clearColor = {0,0,0,0};
 }
 
-void GameScene::Update()
+SceneState GameScene::Update()
 {
 	Scene::Update();
 	Time::SetCurrent();
-	const float delta = Time::DeltaTime();
+	if (!m_isGame)
+	{
+		PreGameLoop();
+		return SceneState::Running;
+	}
+	if (m_isGameOver)
+	{
+		return GameOverLoop();
+	}
+	InGameLoop();
+	return SceneState::Running;
+}
+
+void GameScene::Draw()
+{
+	core->BeginRender();
+	m_groundObj->Draw();
+	if (m_isGame)
+	{
+		for (const auto& sq : m_backSquares)
+		{
+			sq->Draw();
+		}
+		for (int i = 0; i < m_level + 1; i++)
+		{
+			if (i >= m_obstacles.size()) break;
+			m_obstacles[i]->Draw();
+		}
+	}
+	else
+	{
+		m_gameLogo->Draw();
+	}
+	if (m_isGameOver)
+	{
+		m_gameOver->Draw();
+	}
+	m_player->Draw();
+	m_tutorial->Draw();
+	m_scoreObj->Draw();
+	m_playerFloatEnergyBar->Draw();
+	core->EndRender();
+}
+
+void GameScene::InitData()
+{
+	m_score = 0;
+	m_isGame = false;
+	m_isPlayerAir = false;
+	m_isFloat = false;
+	m_isGameOver = false;
+	m_level = 1;
+	m_next = 10;
+	m_playerFloatEnergy = m_playerFloatEnergyMax;
+	m_playerFloatingTime = 0;
+}
+
+void GameScene::PreGameLoop()
+{
+	m_tutorial->Update();
+	m_groundObj->Update();
+	const auto playerRb = m_player->GetComponent<CpRigidBody>();
+	playerRb->isGravity = false;
+
+	m_waitTime -= Time::DeltaTime();
+	if (m_waitTime > 0)
+	{
+		m_player->Update();
+		m_playerFloatEnergyBar->Update();
+		m_scoreObj->Update();
+		m_gameLogo->Update();
+		return;
+	}
+	if (KeyInput::OnKeyDown(VK_SPACE))
+	{
+		const auto playerRb = m_player->GetComponent<CpRigidBody>();
+		m_player->transform.Position.y = m_playerMinY;
+		playerRb->AddForce({ 0,480,0 });
+		playerRb->isGravity = true;
+		m_isGame = true;
+		m_player->Update();
+		const auto tutorialRb = m_tutorial->GetComponent<CpRigidBody>();
+		tutorialRb->SetActive(true);
+		m_scoreObj->Update();
+		m_playerFloatEnergyBar->Update();
+		m_soundManager->Play("jump");
+		m_soundManager->Play("bgm", false, true);
+		return;
+	}
+	m_player->Update();
+	m_playerFloatEnergyBar->Update();
+	m_scoreObj->Update();
+	m_gameLogo->Update();
+}
+
+void GameScene::InGameLoop()
+{
 	if (m_score > m_next)
 	{
 		m_level++;
@@ -153,45 +263,25 @@ void GameScene::Update()
 		CString cs;
 		cs.Format(_T("[level up] %d next->%d\n"), m_level, m_next);
 		OutputDebugString(cs);
+
 	}
-
-	if (!m_isGame)
-	{
-
-		m_tutorial->Update();
-		m_groundObj->Update();
-		const auto playerRb = m_player->GetComponent<CpRigidBody>();
-		playerRb->isGravity = false;
-
-		if (KeyInput::OnKeyDown(VK_SPACE))
-		{
-			const auto playerRb = m_player->GetComponent<CpRigidBody>();
-			m_player->transform.Position.y = m_playerMinY;
-			playerRb->AddForce({ 0,480,0 });
-			playerRb->isGravity = true;
-			m_isGame = true;
-			m_player->Update();
-			const auto tutorialRb = m_tutorial->GetComponent<CpRigidBody>();
-			tutorialRb->SetActive(true);
-			m_scoreObj->Update();
-			m_playerFloatEnergyBar->Update();
-			return;
-		}
-		m_player->Update();
-		m_playerFloatEnergyBar->Update();
-		m_scoreObj->Update();
-		m_gameLogo->Update();
-		return;
-	}
-
 	// チュートリアル看板
 	{
-		if (m_tutorial->transform.Position.x < -5)
+		const auto diff = m_tutorial->transform.Position - m_player->transform.Position;
+		const auto diffVec = XMLoadFloat3(&diff);
+		const auto length = XMVector3Length(diffVec);
+		if (XMVectorGetX(length) < 1.0f)
+		{
+			GameOver();
+			return;
+		}
+		if (m_tutorial->transform.Position.x < -6)
 		{
 			m_tutorial->GetComponent<CpRigidBody>()->SetActive(false);
 			m_tutorial->transform.Position.x = 100;
 			m_score++;
 			m_scoreObj->GetComponent<CpNumMeshRenderer>()->SetNumber(m_score);
+			m_soundManager->Play("score");
 			CString cs;
 			cs.Format(_T("[score] %d\n"), m_score);
 			OutputDebugString(cs);
@@ -203,6 +293,7 @@ void GameScene::Update()
 	if (m_isFloat)
 	{
 		m_playerFloatEnergy -= Time::DeltaTime();
+		m_playerFloatingTime += Time::DeltaTime();
 		if (m_playerFloatEnergy < 0) m_playerFloatEnergy = 0;
 	}
 	if (m_isPlayerAir && KeyInput::OnKeyDown(VK_SPACE))
@@ -224,7 +315,7 @@ void GameScene::Update()
 		m_playerFloatEnergy += Time::DeltaTime() * m_playerFloatEnergyMax;
 		if (m_playerFloatEnergy > m_playerFloatEnergyMax)
 		{
-			m_playerFloatEnergy =  m_playerFloatEnergyMax;
+			m_playerFloatEnergy = m_playerFloatEnergyMax;
 		}
 	}
 	else
@@ -235,6 +326,7 @@ void GameScene::Update()
 	{
 		m_player->transform.Position.y = m_playerMinY;
 		playerRb->AddForce({ 0,480,0 });
+		m_soundManager->Play("jump");
 	}
 	if (m_isFloat)
 	{
@@ -242,12 +334,28 @@ void GameScene::Update()
 		playerRb->velocity.y = 0;
 		playerAnim->ChangeAnimation("float");
 		core->clearColor = { 0.4,0.4,0.4,0.4 };
+		if (m_playerFloatingTime < 0.3)
+		{
+			if (static_cast<int>(m_playerFloatingTime / 0.025) % 2 == 0)
+			{
+				core->clearColor = { 0.4,0.4,0.4,0.4 };
+			}
+			else
+			{
+				core->clearColor = { 0.42,0.42,0.42,0.42 };
+			}
+
+		}
+		else core->clearColor = { 0.4,0.4,0.4,0.4 };
+		m_soundManager->Play("isFloat", false);
 	}
 	else
 	{
 		playerRb->isGravity = true;
 		playerRb->AddForce({ 0, -9.8 * 0.5, 0 });
 		core->clearColor = { 0.5,0.5,0.5,0.5 };
+		m_soundManager->Stop("isFloat");
+		m_playerFloatingTime = 0;
 	}
 
 	// animation
@@ -278,6 +386,15 @@ void GameScene::Update()
 	{
 		if (i >= m_obstacles.size()) break;
 		const auto obstacle = m_obstacles[i];
+		const auto diff = obstacle->transform.Position - m_player->transform.Position;
+		const auto diffVec = XMLoadFloat3(&diff);
+		const auto length = XMVector3Length(diffVec);
+		if (XMVectorGetX(length) < .5f)
+		{
+			GameOver();
+			return;
+		}
+		const float delta = Time::DeltaTime();
 		obstacle->transform.Rotation.x -= 2.0f * delta;
 		obstacle->transform.Rotation.y += 1.2f * delta;
 		auto rb = obstacle->GetComponent<CpRigidBody>();
@@ -294,6 +411,7 @@ void GameScene::Update()
 		{
 			m_score++;
 			m_scoreObj->GetComponent<CpNumMeshRenderer>()->SetNumber(m_score);
+			m_soundManager->Play("score");
 			CString cs;
 			cs.Format(_T("[score] %d\n"), m_score);
 			OutputDebugString(cs);
@@ -318,30 +436,46 @@ void GameScene::Update()
 	m_playerFloatEnergyBar->Update();
 }
 
-void GameScene::Draw()
+SceneState GameScene::GameOverLoop()
 {
-	core->BeginRender();
-	m_groundObj->Draw();
-	if (m_isGame)
+	if (KeyInput::OnKeyDown(VK_SPACE))
 	{
-		for (const auto& sq : m_backSquares)
-		{
-			sq->Draw();
-		}
-		for (int i = 0; i < m_level + 1; i++)
-		{
-			if (i >= m_obstacles.size()) break;
-			m_obstacles[i]->Draw();
-		}
+		return SceneState::Reload;
 	}
-	else
+	for (const auto& obj : m_backSquares)
 	{
-		m_gameLogo->Draw();
+		obj->Update();
 	}
-	m_player->Draw();
-	m_tutorial->Draw();
-	m_scoreObj->Draw();
-	m_playerFloatEnergyBar->Draw();
-	core->EndRender();
+	for (const auto& obj : m_obstacles)
+	{
+		obj->Update();
+	}
+	m_player->Update();
+	m_groundObj->Update();
+	m_scoreObj->Update();
+	m_gameOver->Update();
+	m_tutorial->Update();
+	m_playerFloatEnergyBar->transform.Scale.x = m_playerFloatEnergy;
+	m_playerFloatEnergyBar->Update();
+	return SceneState::Running;
+}
+
+void GameScene::GameOver()
+{
+	m_soundManager->Stop("bgm");
+	m_soundManager->Play("damage", false);
+	m_soundManager->Stop("isFloat");
+	m_player->GetComponent<CpRigidBody>()->SetActive(false);
+	m_player->GetComponent<CpFlipAnimatedMeshRenderer>()->ChangeAnimation("damage");
+	m_tutorial->GetComponent<CpRigidBody>()->SetActive(false);
+	for (const auto& obj : m_backSquares)
+	{
+		obj->GetComponent<CpRigidBody>()->SetActive(false);
+	}
+	for (const auto& obj : m_obstacles)
+	{
+		obj->GetComponent<CpRigidBody>()->SetActive(false);
+	}
+	m_isGameOver = true;
 }
 

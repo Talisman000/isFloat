@@ -12,6 +12,11 @@
 #include "ComPtr.h"
 #include "RootSignature.h"
 
+#include "Windows.h"
+#pragma comment ( lib, "dxguid.lib" )
+#pragma comment ( lib, "dsound.lib" )
+#include "mmsystem.h"
+#include <dsound.h>
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -32,6 +37,7 @@ public:
 
 	ComPtr<ID3D12Device> GetDevice();
 	ComPtr<ID3D12GraphicsCommandList> GetCommandList();
+	ComPtr<IDirectSound8> GetSoundInterface();
 	std::shared_ptr<RootSignature> GetRootSignature(int n);
 
 
@@ -86,6 +92,7 @@ private: // 描画に使用するDirectX12のオブジェクト
 	CD3DX12_RECT m_scissorRect;
 
 	std::vector<std::shared_ptr<RootSignature>> m_rootSignatures;
+	ComPtr<IDirectSound8> m_soundInterface = nullptr;
 
 private: // 初期化関数
 	HRESULT EnableDebugLayer();
@@ -97,6 +104,7 @@ private: // 初期化関数
 	void CreateViewPort(); // ビューポートを生成
 	void CreateScissorRect(); // シザー矩形を生成
 	void CreateRootSignatures();
+	void CreateSoundInterface(HWND hwnd);
 
 private: // 描画に使用するオブジェクト
 	// レンダーターゲット

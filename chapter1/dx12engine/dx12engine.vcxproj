@@ -39,7 +39,6 @@
     <ClCompile Include="CpRigidBody.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RootSignature.cpp" />
-    <ClCompile Include="SampleTriangle.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SharedStruct.cpp" />
     <ClCompile Include="SoundLoader.cpp" />
@@ -71,7 +70,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="CpRigidBody.h" />
     <ClInclude Include="RootSignature.h" />
-    <ClInclude Include="SampleTriangle.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SharedStruct.h" />
     <ClInclude Include="SoundLoader.h" />
@@ -111,6 +109,9 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Assets\cso\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Assets\cso\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\x64\Release\Assets\icon.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -217,13 +218,14 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include\assimp;$(SolutionDir)packages\Assimp_native_4.1.4.1.0\build\native\include;C:\Program Files (x86)\OpenAL 1.1 SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VcpkgRoot)include\;C:\Program Files (x86)\OpenAL 1.1 SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\OpenAL 1.1 SDK\libs\Win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

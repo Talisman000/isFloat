@@ -75,9 +75,6 @@
     <ClCompile Include="VertexBuffer.cpp">
       <Filter>ソース ファイル\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="SampleTriangle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="IndexBuffer.cpp">
       <Filter>ソース ファイル\Engine</Filter>
     </ClCompile>
@@ -142,7 +139,7 @@
       <Filter>ソース ファイル\Sound</Filter>
     </ClCompile>
     <ClCompile Include="SoundLoader.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Sound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -160,9 +157,6 @@
     </ClInclude>
     <ClInclude Include="Core.h">
       <Filter>ヘッダー ファイル\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="SampleTriangle.h">
-      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="IndexBuffer.h">
       <Filter>ヘッダー ファイル\Engine</Filter>
@@ -243,7 +237,7 @@
       <Filter>ヘッダー ファイル\Sound</Filter>
     </ClInclude>
     <ClInclude Include="SoundLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\Sound</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -261,5 +255,10 @@
     <FxCompile Include="VSBase.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\x64\Release\Assets\icon.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
 </Project>
