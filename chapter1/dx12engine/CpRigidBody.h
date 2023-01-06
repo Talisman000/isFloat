@@ -7,7 +7,7 @@ using namespace DirectX;
 
 struct PhysicsProperty
 {
-	XMFLOAT3 Gravity = { 0, -9.8f, 0 };
+	XMFLOAT3 Gravity = { 0, -9.8f * 0.4f, 0 };
 	XMFLOAT3 GroundPosition = { 0, -5, 0 };
 	float RestitutionCoefficient = 0.5f;
 };

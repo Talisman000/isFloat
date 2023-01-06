@@ -16,10 +16,10 @@ void CpRigidBody::Update()
 	}
 	const auto forceDelta = m_force * delta;
 	velocity += forceDelta;
-	m_force *= 0;
 
 	auto parent = m_parent.lock();
 	parent->transform.Position += velocity * delta;
+	m_force = { 0,0,0 };
 }
 
 void CpRigidBody::AddForce(XMFLOAT3 force)
