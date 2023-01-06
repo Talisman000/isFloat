@@ -4,6 +4,7 @@
 
 class CpMeshRenderer : public Component
 {
+protected:
 	std::shared_ptr<MeshRenderer> m_meshRenderer = nullptr;
 public:
 	CpMeshRenderer(std::shared_ptr<GameObject> gameObject, const int priority = -999) : Component(gameObject, priority) {}
