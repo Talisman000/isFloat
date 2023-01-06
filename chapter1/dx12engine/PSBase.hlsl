@@ -12,5 +12,8 @@ float4 pixel(VSOutput input) : SV_TARGET
 {
 	//return input.color;
 	// return float4(input.uv.xy, 1, 1);
-	return _MainTex.Sample(smp, input.uv) * input.color;
+	float4 color =_MainTex.Sample(smp, input.uv) * input.color; 
+	clip( color.a - 0.5 );
+
+	return color;
 }

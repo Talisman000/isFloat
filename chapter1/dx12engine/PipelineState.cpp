@@ -11,6 +11,12 @@ PipelineState::PipelineState()
 	desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT); // ラスタライザーはデフォルト
 	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // カリングはなし
 	desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // ブレンドステートもデフォルト
+	auto& target = desc.BlendState.RenderTarget[0];
+	target.BlendEnable = TRUE;
+	target.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	target.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	target.SrcBlendAlpha = D3D12_BLEND_SRC_ALPHA;
+	target.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 	desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // 深度ステンシルはデフォルトを使う
 	desc.SampleMask = UINT_MAX;
 	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 三角形を描画
@@ -38,7 +44,7 @@ void PipelineState::SetRootSignature(ComPtr<ID3D12RootSignature> rootSignature)
 
 void PipelineState::SetVS(std::wstring filePath)
 {
-// 頂点シェーダー読み込み
+	// 頂点シェーダー読み込み
 	auto hr = D3DReadFileToBlob(filePath.c_str(), m_pVsBlob.GetAddressOf());
 	if (FAILED(hr))
 	{
