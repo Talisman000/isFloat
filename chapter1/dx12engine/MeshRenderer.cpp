@@ -67,13 +67,12 @@ bool MeshRenderer::Init()
 
 	for (size_t i = 0; i < m_meshes.size(); i++)
 	{
-		auto& diffuseMap = m_meshes[i].DiffuseMap;
+		auto& texPath = m_meshes[i].DiffuseMap;
 		Texture2D* mainTex = nullptr;
-		auto texPath = diffuseMap != L"" ? ReplaceExtension(diffuseMap, "tga") : L"";
 		mainTex = Texture2DCache::Find(texPath);
 		if (mainTex == nullptr)
 		{
-			mainTex = texPath != L"" ? Texture2D::Get(m_core, texPath):Texture2D::GetWhite(m_core);
+			mainTex = texPath != L"" ? Texture2D::Get(m_core, texPath) : Texture2D::GetWhite(m_core);
 			Texture2DCache::Register(texPath, mainTex);
 		}
 		auto handle = m_descriptorHeap->Register(mainTex);
