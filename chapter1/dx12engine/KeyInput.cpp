@@ -18,6 +18,14 @@ void KeyInput::Update()
 		{
 			keyState.isPressed = false;
 			keyState.isDown = false;
+			if (keyState.pressedFrame != 0)
+			{
+				keyState.isUp = true;
+			}
+			else
+			{
+				keyState.isUp = false;
+			}
 			keyState.pressedFrame = 0;
 		}
 	}
@@ -48,4 +56,15 @@ bool KeyInput::OnKeyPress(int keyCode)
 		return false;
 	}
 	return it->second.isPressed;
+}
+
+bool KeyInput::OnKeyUp(int keyCode)
+{
+	const auto it = m_listeningKeys.find(keyCode);
+	if (it == m_listeningKeys.end())
+	{
+		OutputDebugString(L"Warning: keycode not found\n");
+		return false;
+	}
+	return it->second.isUp;
 }

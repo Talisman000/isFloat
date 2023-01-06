@@ -9,6 +9,7 @@ class KeyInput
 		int pressedFrame = 0;
 		bool isDown = false;
 		bool isPressed = false;
+		bool isUp = false;
 	};
 
 	inline static std::map<int, KeyState> m_listeningKeys = std::map<int,KeyState>();
@@ -17,5 +18,6 @@ public:
 	static void AddListen(int keyCode);
 	static bool OnKeyDown(int keyCode);
 	static bool OnKeyPress(int keyCode);
+	static bool OnKeyUp(int keyCode);
 };
 
