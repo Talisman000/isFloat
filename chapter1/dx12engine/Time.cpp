@@ -22,11 +22,11 @@ float Time::DeltaTime()
 {
 	const auto deltaSec = std::chrono::duration_cast<std::chrono::microseconds>(m_currentTime - m_prevTime).count();
 	const float delta = static_cast<float>(deltaSec) * 0.000001f;
-#if _DEBUG
-	CString cs;
-	cs.Format(_T("[delta] %2.2f\n"), delta);
-	OutputDebugString(cs);
-#endif
+//#if _DEBUG
+//	CString cs;
+//	cs.Format(_T("[delta] %2.2f\n"), delta);
+//	OutputDebugString(cs);
+//#endif
 	return delta;
 }
 
