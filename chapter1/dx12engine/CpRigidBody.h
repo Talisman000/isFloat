@@ -21,6 +21,7 @@ private:
 public:
 	CpRigidBody(std::shared_ptr<GameObject> gameObject, const int priority = 0) : Component(gameObject, priority) {}
 	XMFLOAT3 velocity = { 0,0,0 };
+	float gravityMultiplier = 1;
 	bool isGravity = true;
 	bool isGroundCollision = true;
 	bool isRestitution = true;

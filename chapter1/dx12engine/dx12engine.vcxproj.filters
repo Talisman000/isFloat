@@ -246,9 +246,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="PSBase.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>

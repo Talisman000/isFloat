@@ -12,7 +12,7 @@ void CpRigidBody::Update()
 	// â¡ë¨ìxåvéZ
 	if (isGravity)
 	{
-		m_force += m_property.Gravity;
+		m_force += m_property.Gravity * gravityMultiplier;
 	}
 	const auto forceDelta = m_force * delta;
 	velocity += forceDelta;
@@ -24,5 +24,5 @@ void CpRigidBody::Update()
 
 void CpRigidBody::AddForce(XMFLOAT3 force)
 {
-	m_force += force;
+	m_force += force * (1.0f / Time::DeltaTime());
 }

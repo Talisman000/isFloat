@@ -27,7 +27,7 @@ float Time::DeltaTime()
 //	cs.Format(_T("[delta] %2.2f\n"), delta);
 //	OutputDebugString(cs);
 //#endif
-	return delta;
+	return std::fmin(delta, 1.0f/30.0f);
 }
 
 

@@ -16,6 +16,7 @@ private:
 	std::shared_ptr<GameObject> m_world;
 	std::shared_ptr<GameObject> m_player;
 	std::shared_ptr<GameObject> m_playerFloatEnergyBar;
+	float m_jumpPower = 8;
 	float m_waitTime = 1.f;
 	const float m_playerFloatEnergyMax = 2.f;
 	float m_playerFloatEnergy = 0;

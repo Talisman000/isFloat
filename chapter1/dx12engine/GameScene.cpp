@@ -9,6 +9,7 @@
 #include "KeyInput.h"
 #include "Time.h"
 #include "XMFLOATHelper.h"
+#include <tchar.h>
 
 
 void GameScene::Start()
@@ -17,11 +18,11 @@ void GameScene::Start()
 	if (m_soundManager == nullptr)
 	{
 		m_soundManager = std::make_shared<SoundManager>();
-		m_soundManager->Register("score", 0, "Assets/Audio/score.wav");
-		m_soundManager->Register("jump", 1, "Assets/Audio/jump.wav");
-		m_soundManager->Register("isFloat", 2, "Assets/Audio/isFloat.wav");
-		m_soundManager->Register("bgm", 3, "Assets/Audio/bgm.wav");
-		m_soundManager->Register("damage", 4, "Assets/Audio/damage.wav");
+		m_soundManager->Register("score", 0, (TCHAR*)_T("Assets/Audio/score.wav"));
+		m_soundManager->Register("jump", 1, (TCHAR*)_T("Assets/Audio/jump.wav"));
+		m_soundManager->Register("isFloat", 2, (TCHAR*)_T("Assets/Audio/isFloat.wav"));
+		m_soundManager->Register("bgm", 3, (TCHAR*)_T("Assets/Audio/bgm.wav"));
+		m_soundManager->Register("damage", 4,(TCHAR*)_T( "Assets/Audio/damage.wav"));
 	}
 
 	m_world = GameObject::Create();
@@ -51,7 +52,7 @@ void GameScene::Start()
 		const auto cubeMesh = CubeMesh({ 1,1,1,1 });
 		meshRenderer->SetMesh(core, cubeMesh);
 		cube->SetParent(m_world);
-		rigidBody->velocity = { Random::RangeF(-10, -3) ,0,0 };
+		rigidBody->velocity = { Random::RangeF(-7, -3) ,0,0 };
 		cube->transform.Position = { Random::RangeF(20, 36), Random::RangeF(2, 4) ,0 };
 		auto scale = 0.3f;
 		cube->transform.Scale = { scale,scale,scale, };
@@ -80,6 +81,7 @@ void GameScene::Start()
 		m_player = GameObject::Create();
 		const auto meshRenderer = m_player->AddComponent<CpFlipAnimatedMeshRenderer>();
 		const auto rigidBody = m_player->AddComponent<CpRigidBody>();
+		rigidBody->gravityMultiplier = 2.f;
 		std::vector<Mesh> meshes;
 		for (int i = 1; i < 11; i++)
 		{
@@ -122,10 +124,10 @@ void GameScene::Start()
 	// スコア表示部の初期化
 	{
 		m_scoreObj = GameObject::Create();
-		m_scoreObj->transform.Position = { -0.4, -1.6,3 };
-		m_scoreObj->transform.Scale = { 0.1,0.1,0.1 };
+		m_scoreObj->transform.Position = { -0.235, -1.8,3 };
+		m_scoreObj->transform.Scale *= 0.12f;
 		const auto numMeshRenderer = m_scoreObj->AddComponent<CpNumMeshRenderer>();
-		numMeshRenderer->Init(core, 5);
+		numMeshRenderer->Init(core, 3);
 		numMeshRenderer->SetNumber(0);
 	}
 
@@ -236,7 +238,7 @@ void GameScene::PreGameLoop()
 	{
 		const auto playerRb = m_player->GetComponent<CpRigidBody>();
 		m_player->transform.Position.y = m_playerMinY;
-		playerRb->AddForce({ 0,480,0 });
+		playerRb->AddForce({ 0,m_jumpPower,0 });
 		playerRb->isGravity = true;
 		m_isGame = true;
 		m_player->Update();
@@ -325,7 +327,7 @@ void GameScene::InGameLoop()
 	if (KeyInput::OnKeyDown(VK_SPACE) && m_player->transform.Position.y < m_playerMinY + 0.001f)
 	{
 		m_player->transform.Position.y = m_playerMinY;
-		playerRb->AddForce({ 0,480,0 });
+		playerRb->AddForce({ 0,m_jumpPower,0 });
 		m_soundManager->Play("jump");
 	}
 	if (m_isFloat)
@@ -352,7 +354,6 @@ void GameScene::InGameLoop()
 	else
 	{
 		playerRb->isGravity = true;
-		playerRb->AddForce({ 0, -9.8 * 0.5, 0 });
 		core->clearColor = { 0.5,0.5,0.5,0.5 };
 		m_soundManager->Stop("isFloat");
 		m_playerFloatingTime = 0;
@@ -417,12 +418,12 @@ void GameScene::InGameLoop()
 			OutputDebugString(cs);
 			obstacle->transform.Position.x = Random::RangeF(6, 24);
 			obstacle->transform.Position.y = Random::RangeF(1, 4);
-			obstacle->GetComponent<CpRigidBody>()->velocity.x = Random::RangeF(-10, -3);
+			obstacle->GetComponent<CpRigidBody>()->velocity.x = Random::RangeF(-6 - m_level, -3);
 		}
 		if (obstacle->transform.Position.y < -0.5f)
 		{
 			rb->velocity.y = 0;
-			rb->AddForce({ 0,220,0 });
+			rb->AddForce({ 0,3.5f,0 });
 		}
 		obstacle->Update();
 	}
