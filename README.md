@@ -19,7 +19,7 @@
 詳しくはゲーム内の看板を参照してください。
 
 ## 制作環境
-- DirectX
+- DirectX12
 - XAudio2
 - Visual Studio 2022
 - ReSharper
