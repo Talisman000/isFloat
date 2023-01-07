@@ -1,6 +1,8 @@
 # !isFloat
 ![isFloat](https://user-images.githubusercontent.com/43210554/211152625-87511935-fde3-4647-9186-2e4bd9a6cf2f.png)
 
+### [ダウンロード](https://github.com/Talisman000/isFloat/releases)
+
 ## これは何？
 このゲームは、DirectX12の学習の成果物です。
 
